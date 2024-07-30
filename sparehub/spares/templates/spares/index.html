@@ -1,0 +1,37 @@
+<!-- spares/templates/spares/index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SpareHub</title>
+    <style>
+        /* Basic styling for buttons */
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to SpareHub</h1>
+    <p>Your one-stop shop for car spares and accessories.</p>
+
+    <div>
+        <a href="{% url 'browse' %}" class="button">Browse</a>
+        <a href="{% url 'home' %}" class="button">Home</a>
+        <a href="{% url 'signup' %}" class="button">Signup</a>
+        <a href="{% url 'login' %}" class="button">Login</a>
+    </div>
+</body>
+</html>
