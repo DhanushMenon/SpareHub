@@ -18,6 +18,9 @@ urlpatterns = [
     path('browse/', views.browse_customer, name='browse_customer'),
     path('logout/', views.logout_view, name='logout'),  # General logout view
     path('add_product/', views.add_product, name='add_product'),
+    path('edit-profile/', views.edit_company_profile, name='edit_company_profile'),
+    path('edit-product/<int:product_id>/', views.edit_product, name='edit_product'),
+    path('toggle-product-availability/<int:product_id>/', views.toggle_product_availability, name='toggle_product_availability'),
+    path('remove-product/<int:product_id>/', views.remove_product, name='remove_product'),
 ]
-   
 

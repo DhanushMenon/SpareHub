@@ -139,22 +139,120 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('registrationForm');
-            const fields = form.querySelectorAll('input, textarea');
+        $(document).ready(function() {
+            // Function to validate company name
+            function validateCompanyName() {
+                var companyName = $('#id_company_name').val().trim();
+                if (companyName.length < 2 || companyName.length > 100) {
+                    showError('id_company_name', 'Company name must be between 2 and 100 characters.');
+                    return false;
+                } else {
+                    removeError('id_company_name');
+                    return true;
+                }
+            }
 
-            fields.forEach(field => {
-                field.addEventListener('input', function() {
-                    const errorDiv = document.getElementById(`${field.id}-error`);
-                    if (field.validity.valid) {
-                        errorDiv.style.display = 'none'; // Hide error message
-                    } else {
-                        errorDiv.textContent = field.validationMessage; // Show error message
-                        errorDiv.style.display = 'block';
-                    }
-                });
+            // Function to validate email
+            function validateEmail() {
+                var email = $('#id_email').val().trim();
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showError('id_email', 'Please enter a valid email address.');
+                    return false;
+                } else {
+                    removeError('id_email');
+                    return true;
+                }
+            }
+
+            // Function to validate phone number
+            function validatePhoneNumber() {
+                var phoneNumber = $('#id_phone_number').val().trim();
+                var phoneRegex = /^\d{10,15}$/;
+                if (!phoneRegex.test(phoneNumber)) {
+                    showError('id_phone_number', 'Please enter a valid phone number (10-15 digits only).');
+                    return false;
+                } else {
+                    removeError('id_phone_number');
+                    return true;
+                }
+            }
+
+            // Function to validate address
+            function validateAddress() {
+                var address = $('#id_address').val().trim();
+                if (address.length < 5 || address.length > 200) {
+                    showError('id_address', 'Address must be between 5 and 200 characters.');
+                    return false;
+                } else {
+                    removeError('id_address');
+                    return true;
+                }
+            }
+
+            // Function to validate password
+            function validatePassword() {
+                var password = $('#id_password1').val();
+                if (password.length < 8) {
+                    showError('id_password1', 'Password must be at least 8 characters long.');
+                    return false;
+                } else {
+                    removeError('id_password1');
+                    return true;
+                }
+            }
+
+            // Function to validate password confirmation
+            function validatePasswordConfirmation() {
+                var password = $('#id_password1').val();
+                var passwordConfirm = $('#id_password2').val();
+                if (password !== passwordConfirm) {
+                    showError('id_password2', 'Passwords do not match.');
+                    return false;
+                } else {
+                    removeError('id_password2');
+                    return true;
+                }
+            }
+
+            // Attach blur event handlers to each field
+            $('#id_company_name').blur(validateCompanyName);
+            $('#id_email').blur(validateEmail);
+            $('#id_phone_number').blur(validatePhoneNumber);
+            $('#id_address').blur(validateAddress);
+            $('#id_password1').blur(validatePassword);
+            $('#id_password2').blur(validatePasswordConfirmation);
+
+            // Prevent non-digit characters in phone number field
+            $('#id_phone_number').on('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
             });
+
+            // Form submission handler
+            $('#registrationForm').on('submit', function(e) {
+                var isValid = validateCompanyName() &
+                              validateEmail() &
+                              validatePhoneNumber() &
+                              validateAddress() &
+                              validatePassword() &
+                              validatePasswordConfirmation();
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+            function showError(fieldId, message) {
+                $('#' + fieldId + '-error').text(message).show();
+                $('#' + fieldId).addClass('is-invalid');
+            }
+
+            function removeError(fieldId) {
+                $('#' + fieldId + '-error').hide();
+                $('#' + fieldId).removeClass('is-invalid');
+            }
         });
     </script>
 </body>

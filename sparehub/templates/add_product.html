@@ -77,10 +77,12 @@
                         <div class="mb-3">
                             <label for="name" class="form-label">Product Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="invalid-feedback" id="name-error"></div>
                         </div>
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                            <div class="invalid-feedback" id="description-error"></div>
                         </div>
 
                         
@@ -89,7 +91,7 @@
                         <div class="mb-3">
                             <label for="price" class="form-label">Price</label>
                             <input type="number" class="form-control" id="price" name="price" required>
-                            
+                            <div class="invalid-feedback" id="price-error"></div>
                         </div>
                         <div class="mb-3">
                             <label for="is_available" class="form-label">Availability</label>
@@ -101,14 +103,17 @@
                         <div class="mb-3">
                             <label for="stock_quantity" class="form-label">Stock Quantity</label>
                             <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" required>
+                            <div class="invalid-feedback" id="stock_quantity-error"></div>
                         </div>
                         <div class="mb-3">
                             <label for="warranty_period" class="form-label">Warranty Period</label>
                             <input type="number" class="form-control" id="warranty_period" name="warranty_period" required>
+                            <div class="invalid-feedback" id="warranty_period-error"></div>
                         </div>
                         <div class="mb-3">
                             <label for="image" class="form-label">Product Image</label>
                             <input type="file" class="form-control" id="image" name="image" required>
+                            <div class="invalid-feedback" id="image-error"></div>
                         </div>
                         <button type="submit" class="btn btn-primary">Add Product</button>
                     </form>
@@ -116,5 +121,118 @@
             </div>
         </div>
     </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        // Function to validate product name
+        function validateName() {
+            var name = $('#name').val().trim();
+            if (name.length < 2 || name.length > 200) {
+                showError('name', 'Product name must be between 2 and 200 characters.');
+                return false;
+            } else {
+                removeError('name');
+                return true;
+            }
+        }
+
+        // Function to validate description
+        function validateDescription() {
+            var description = $('#description').val().trim();
+            if (description.length < 10) {
+                showError('description', 'Description must be at least 10 characters long.');
+                return false;
+            } else {
+                removeError('description');
+                return true;
+            }
+        }
+
+        // Function to validate price
+        function validatePrice() {
+            var price = $('#price').val().trim();
+            if (isNaN(price) || price <= 0) {
+                showError('price', 'Please enter a valid positive number for price.');
+                return false;
+            } else {
+                removeError('price');
+                return true;
+            }
+        }
+
+        // Function to validate stock quantity
+        function validateStockQuantity() {
+            var quantity = $('#stock_quantity').val().trim();
+            if (!Number.isInteger(Number(quantity)) || quantity < 0) {
+                showError('stock_quantity', 'Please enter a valid non-negative integer for stock quantity.');
+                return false;
+            } else {
+                removeError('stock_quantity');
+                return true;
+            }
+        }
+
+        // Function to validate warranty period
+        function validateWarrantyPeriod() {
+            var warranty = $('#warranty_period').val().trim();
+            if (!Number.isInteger(Number(warranty)) || warranty < 0) {
+                showError('warranty_period', 'Please enter a valid non-negative integer for warranty period.');
+                return false;
+            } else {
+                removeError('warranty_period');
+                return true;
+            }
+        }
+
+        // Function to validate image
+        function validateImage() {
+            var image = $('#image')[0].files[0];
+            if (!image) {
+                showError('image', 'Please select an image file.');
+                return false;
+            }
+            var allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(image.type)) {
+                showError('image', 'Please select a valid image file (JPEG, PNG, or GIF).');
+                return false;
+            }
+            removeError('image');
+            return true;
+        }
+
+        // Attach blur event handlers to each field
+        $('#name').blur(validateName);
+        $('#description').blur(validateDescription);
+        $('#price').blur(validatePrice);
+        $('#stock_quantity').blur(validateStockQuantity);
+        $('#warranty_period').blur(validateWarrantyPeriod);
+        $('#image').change(validateImage);
+
+        // Form submission handler
+        $('form').on('submit', function(e) {
+            var isValid = validateName() &
+                          validateDescription() &
+                          validatePrice() &
+                          validateStockQuantity() &
+                          validateWarrantyPeriod() &
+                          validateImage();
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+
+        function showError(fieldId, message) {
+            $('#' + fieldId + '-error').text(message).show();
+            $('#' + fieldId).addClass('is-invalid');
+        }
+
+        function removeError(fieldId) {
+            $('#' + fieldId + '-error').hide();
+            $('#' + fieldId).removeClass('is-invalid');
+        }
+    });
+    </script>
 </body>
 </html>

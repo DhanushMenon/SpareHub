@@ -2,14 +2,19 @@
 
 # spares/views.py
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Customer,User,Company, Product# Import your Customer model
 from django.contrib.auth import authenticate, login,logout
-from .forms import CompanyRegistrationForm, CustomerRegistrationForm
+from .forms import CompanyRegistrationForm, CustomerRegistrationForm, CompanyProfileForm
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+
+
+
+
+
 
 @login_required
 def add_product(request):
@@ -87,7 +92,10 @@ def login_customer(request):
         
         if user is not None and user.is_customer:
             login(request, user)
-            return redirect('browse_customer')  # Make sure this URL name is defined in your urls.py
+            request.session['user_id'] = user.id
+            request.session['is_customer'] = True
+            messages.success(request, 'You have successfully logged in.')
+            return redirect('browse_customer')
         else:
             messages.error(request, 'Invalid username or password, or not a customer account.')
     
@@ -129,6 +137,9 @@ def login_company(request):
         user = authenticate(request, username=username, password=password)
         if user is not None and user.is_company:
             login(request, user)
+            request.session['user_id'] = user.id
+            request.session['is_company'] = True
+            messages.success(request, 'You have successfully logged in.')
             return redirect('company_dashboard')
         else:
             messages.error(request, 'Invalid credentials or not a company account')
@@ -154,6 +165,73 @@ def browse_customer(request):
 @require_POST
 def logout_view(request):
     logout(request)
+    if 'user_id' in request.session:
+        del request.session['user_id']
+    if 'is_customer' in request.session:
+        del request.session['is_customer']
+    if 'is_company' in request.session:
+        del request.session['is_company']
     messages.success(request, "You have been successfully logged out.")
     return redirect('login_customer')
 
+
+
+
+@login_required
+def edit_company_profile(request):
+    if request.method == 'POST':
+        form = CompanyProfileForm(request.POST, instance=request.user.company)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated successfully.')
+            return redirect('company_dashboard')
+    else:
+        form = CompanyProfileForm(instance=request.user.company)
+    
+    return render(request, 'edit_company_profile.html', {'form': form})
+
+
+
+@login_required
+def edit_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id, company=request.user)
+    
+    if request.method == 'POST':
+        product.name = request.POST['name']
+        product.description = request.POST['description']
+        product.price = request.POST['price']
+        product.stock_quantity = request.POST['stock_quantity']
+        product.warranty_period = request.POST['warranty_period']
+        
+        if 'image' in request.FILES:
+            product.image = request.FILES['image']
+        
+        product.save()
+        # messages.success(request, 'Product updated successfully.')
+        return redirect('company_dashboard')
+    
+    return render(request, 'edit_product.html', {'product': product})
+
+
+
+@login_required
+def toggle_product_availability(request, product_id):
+    if request.method == 'POST':
+        product = get_object_or_404(Product, id=product_id, company=request.user)
+        product.is_available = not product.is_available
+        product.save()
+        status = "available" if product.is_available else "unavailable"
+        # messages.success(request, f'Product is now {status}.')
+    return redirect('company_dashboard')
+
+
+
+
+
+@login_required
+def remove_product(request, product_id):
+    if request.method == 'POST':
+        product = get_object_or_404(Product, id=product_id, company=request.user)
+        product.delete()
+        # messages.success(request, 'Product removed successfully.')
+    return redirect('company_dashboard')

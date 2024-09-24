@@ -56,3 +56,9 @@ class CompanyRegistrationForm(UserCreationForm):
                 registration_date=self.cleaned_data.get('registration_date')
             )
         return user
+
+
+class CompanyProfileForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = ['company_name', 'company_address']

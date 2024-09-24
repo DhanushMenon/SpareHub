@@ -140,5 +140,70 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('form').on('submit', function(e) {
+            var isValid = true;
+            
+            // Username validation
+            var username = $('#id_username').val();
+            if (username.length < 3 || username.length > 150) {
+                isValid = false;
+                $('#id_username').next('.error-message').remove();
+                $('#id_username').after('<span class="error-message text-danger">Username must be between 3 and 150 characters.</span>');
+            } else {
+                $('#id_username').next('.error-message').remove();
+            }
+
+            // Email validation
+            var email = $('#id_email').val();
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                isValid = false;
+                $('#id_email').next('.error-message').remove();
+                $('#id_email').after('<span class="error-message text-danger">Please enter a valid email address.</span>');
+            } else {
+                $('#id_email').next('.error-message').remove();
+            }
+
+            // Phone number validation
+            var phoneNumber = $('#id_phone_number').val();
+            var phoneRegex = /^\+?1?\d{9,15}$/;
+            if (!phoneRegex.test(phoneNumber)) {
+                isValid = false;
+                $('#id_phone_number').next('.error-message').remove();
+                $('#id_phone_number').after('<span class="error-message text-danger">Please enter a valid phone number (9-15 digits).</span>');
+            } else {
+                $('#id_phone_number').next('.error-message').remove();
+            }
+
+            // Password validation
+            var password = $('#id_password1').val();
+            if (password.length < 8) {
+                isValid = false;
+                $('#id_password1').next('.error-message').remove();
+                $('#id_password1').after('<span class="error-message text-danger">Password must be at least 8 characters long.</span>');
+            } else {
+                $('#id_password1').next('.error-message').remove();
+            }
+
+            // Password confirmation validation
+            var passwordConfirm = $('#id_password2').val();
+            if (password !== passwordConfirm) {
+                isValid = false;
+                $('#id_password2').next('.error-message').remove();
+                $('#id_password2').after('<span class="error-message text-danger">Passwords do not match.</span>');
+            } else {
+                $('#id_password2').next('.error-message').remove();
+            }
+
+            // Prevent form submission if validation fails
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    });
+    </script>
 </body>
 </html>
