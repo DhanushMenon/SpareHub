@@ -1,8 +1,14 @@
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
 from django.urls import path
-from . import views
+from spares import views as spares_views
+
+from django.urls import path
+from . import views  # Import views from the current app
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    path('', views.home, name='home'),  # Home view
     path('register/customer/', views.register_customer, name='register_customer'),
     path('login/customer/', views.login_customer, name='login_customer'),
     path('register/company/', views.register_company, name='register_company'),
@@ -10,8 +16,8 @@ urlpatterns = [
     path('company_dashboard/', views.company_dashboard, name='company_dashboard'),
     path('google-signup/', views.google_signup, name='google_signup'),
     path('browse/', views.browse_customer, name='browse_customer'),
-    path('logout/', views.logout_view, name='logout'), # Add this line
+    path('logout/', views.logout_view, name='logout'),  # General logout view
     path('add_product/', views.add_product, name='add_product'),
-    path('logout/customer/', views.logout_view, name='logout_customer'),
-    path('logout/company/', views.logout_view, name='logout_company'),
 ]
+   
+

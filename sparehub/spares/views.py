@@ -45,7 +45,7 @@ def company_dashboard(request):
     return render(request, 'company_dashboard.html', {'products': products})
 
 def browse_customer(request):
-    products = Product.objects.filter(is_available=True)
+    products = Product.objects.filter(is_available=True)  # Fetch available products
     search_query = request.GET.get('search')
     category = request.GET.get('category')
 
@@ -95,7 +95,7 @@ def login_customer(request):
 
 
 def browse_customer(request):
-    products = Product.objects.filter(is_available=True)
+    products = Product.objects.filter(is_available=True)  # Fetch available products
     search_query = request.GET.get('search')
     category = request.GET.get('category')
 
@@ -147,7 +147,7 @@ def google_signup(request):
     return redirect('register_customer')  # Redirect to the registration page or wherever appropriate
 
 def browse_customer(request):
-    products = Product.objects.filter(is_available=True)
+    products = Product.objects.filter(is_available=True)  # Fetch available products
     return render(request, 'browse_customer.html', {'products': products})
 
 
@@ -156,3 +156,4 @@ def logout_view(request):
     logout(request)
     messages.success(request, "You have been successfully logged out.")
     return redirect('login_customer')
+

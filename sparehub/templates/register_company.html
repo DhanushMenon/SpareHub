@@ -93,19 +93,13 @@
                     {% endif %}
                     <h2 class="text-center mb-4">Register Your Company</h2>
                     <p class="text-center text-muted mb-4">Sign up to list your products on SpareHub and reach a wide audience.</p>
-                    <form method="POST" action="{% url 'register_company' %}">
+                    <form method="POST" action="{% url 'register_company' %}" id="registrationForm">
                         {% csrf_token %}
                         {% for field in form %}
                             <div class="mb-3">
                                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                                 {{ field }}
-                                {% if field.errors %}
-                                    <div class="text-danger">
-                                        {% for error in field.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
+                                <div class="text-danger" id="{{ field.id_for_label }}-error" style="display:none;"></div> <!-- Error message -->
                             </div>
                         {% endfor %}
                         <button type="submit" class="btn btn-primary w-100">Create Company Account</button>
@@ -145,5 +139,23 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registrationForm');
+            const fields = form.querySelectorAll('input, textarea');
+
+            fields.forEach(field => {
+                field.addEventListener('input', function() {
+                    const errorDiv = document.getElementById(`${field.id}-error`);
+                    if (field.validity.valid) {
+                        errorDiv.style.display = 'none'; // Hide error message
+                    } else {
+                        errorDiv.textContent = field.validationMessage; // Show error message
+                        errorDiv.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

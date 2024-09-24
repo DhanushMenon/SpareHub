@@ -41,7 +41,7 @@ class Product(models.Model):
     stock_quantity = models.PositiveIntegerField(default=0)
     warranty_period = models.PositiveIntegerField(help_text="Warranty period in months")
     is_available = models.BooleanField(default=True)
-    company = models.ForeignKey(User, on_delete=models.CASCADE, related_name='products', null=True)  # Make it nullable
+    company = models.ForeignKey(User, on_delete=models.CASCADE, related_name='products', null=True)
 
     def __str__(self):
         return self.name
