@@ -100,9 +100,21 @@
                         </div>
                     {% endif %}
                     <h2 class="text-center mb-4">Create a Customer Account</h2>
-                    <form method="POST" action="{% url 'register_customer' %}">
+                    <form method="POST">
                         {% csrf_token %}
-                        {{ form.as_p }}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger">
+                                        {% for error in field.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
                         <button type="submit" class="btn btn-primary w-100">Create Account</button>
                     </form>
                     <p class="text-center mt-3">Already have an account? <a href="{% url 'login_customer' %}">Login here</a></p>

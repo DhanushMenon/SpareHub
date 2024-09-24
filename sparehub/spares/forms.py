@@ -1,34 +1,37 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, Company, Customer
-
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from .models import User, Company, Customer
 
 class CustomerRegistrationForm(UserCreationForm):
-    first_name = forms.CharField(max_length=100)
-    last_name = forms.CharField(max_length=100)
-    email = forms.EmailField()
-    phone_number = forms.CharField(max_length=15)
-    address = forms.CharField(widget=forms.Textarea)
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=30, required=True)
+    last_name = forms.CharField(max_length=30, required=True)
+    phone_number = forms.CharField(max_length=15, required=True)
+    address = forms.CharField(widget=forms.Textarea, required=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2', 'first_name', 'last_name', 'phone_number', 'address']
+        fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['password1'].help_text = None
+        self.fields['password2'].help_text = None
+        self.fields['username'].help_text = None
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.is_customer = True
-        user.first_name = self.cleaned_data.get('first_name')
-        user.last_name = self.cleaned_data.get('last_name')
-        user.email = self.cleaned_data.get('email')
-        user.phone_number = self.cleaned_data.get('phone_number')
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        
         if commit:
             user.save()
             Customer.objects.create(
                 user=user,
-                address=self.cleaned_data.get('address')
+                phone_number=self.cleaned_data['phone_number'],
+                address=self.cleaned_data['address']
             )
         return user
 

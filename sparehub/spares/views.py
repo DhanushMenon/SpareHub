@@ -10,11 +10,10 @@ from django.contrib.auth import authenticate, login,logout
 from .forms import CompanyRegistrationForm, CustomerRegistrationForm, CompanyProfileForm
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import Product, Cart, CartItem, Wishlist
 
-
-
-
-
+# ... existing views ...
 
 @login_required
 def add_product(request):
@@ -235,3 +234,65 @@ def remove_product(request, product_id):
         product.delete()
         # messages.success(request, 'Product removed successfully.')
     return redirect('company_dashboard')
+
+@login_required
+def add_to_cart(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    cart_item, item_created = CartItem.objects.get_or_create(cart=cart, product=product)
+    
+    if not item_created:
+        cart_item.quantity += 1
+        cart_item.save()
+
+    return JsonResponse({'cart_count': cart.cartitem_set.count()})
+
+@login_required
+def view_cart(request):
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    cart_items = cart.cartitem_set.all()
+    total_price = cart.total_price()
+    return render(request, 'view_cart.html', {'cart_items': cart_items, 'total_price': total_price})
+
+@login_required
+def update_cart_item(request, item_id):
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    action = request.POST.get('action')
+
+    if action == 'increase':
+        cart_item.quantity += 1
+    elif action == 'decrease':
+        cart_item.quantity -= 1
+
+    if cart_item.quantity > 0:
+        cart_item.save()
+    else:
+        cart_item.delete()
+
+    return redirect('view_cart')
+
+@login_required
+def remove_from_cart(request, item_id):
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    cart_item.delete()
+    return redirect('view_cart')
+
+@login_required
+def add_to_wishlist(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    wishlist, created = Wishlist.objects.get_or_create(user=request.user)
+    wishlist.products.add(product)
+    return JsonResponse({'success': True})
+
+@login_required
+def remove_from_wishlist(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    wishlist = get_object_or_404(Wishlist, user=request.user)
+    wishlist.products.remove(product)
+    return redirect('view_wishlist')
+
+@login_required
+def view_wishlist(request):
+    wishlist, created = Wishlist.objects.get_or_create(user=request.user)
+    wishlist_products = wishlist.products.all()
+    return render(request, 'view_wishlist.html', {'wishlist_products': wishlist_products})
