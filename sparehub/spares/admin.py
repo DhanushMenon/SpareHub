@@ -3,6 +3,6 @@ from .models import Product
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'stock_quantity', 'warranty_period')
-    list_filter = ('warranty_period',)
-    search_fields = ('name', 'description')
+    list_display = ['name', 'price', 'stock_quantity', 'warranty']  # Changed 'warranty_period' to 'warranty'
+    list_filter = ['category', 'availability']  # Removed 'warranty_period' from list_filter
+    search_fields = ['name', 'description']

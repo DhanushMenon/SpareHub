@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import User, Company, Customer
+from .models import User, Company, Customer, Product, ProductImage
 
 class CustomerRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -64,4 +64,20 @@ class CompanyRegistrationForm(UserCreationForm):
 class CompanyProfileForm(forms.ModelForm):
     class Meta:
         model = Company
-        fields = ['company_name', 'company_address']
+        fields = ['company_name', 'company_address']  # Include only the fields you want to be editable
+        # You can exclude the registration_number if you don't want it to be editable after registration
+
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['name', 'description', 'category', 'price', 'stock_quantity', 'warranty', 'availability']
+
+class ProductImageForm(forms.ModelForm):
+    image = forms.ImageField(label='Image')
+    class Meta:
+        model = ProductImage
+        fields = ['image']
+
+ProductImageFormSet = forms.inlineformset_factory(Product, ProductImage, form=ProductImageForm, extra=1)
+

@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Customer,User,Company, Product# Import your Customer model
 from django.contrib.auth import authenticate, login,logout
-from .forms import CompanyRegistrationForm, CustomerRegistrationForm, CompanyProfileForm
+from .forms import CompanyRegistrationForm, CustomerRegistrationForm, CompanyProfileForm, ProductForm, ProductImageFormSet
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -17,35 +17,31 @@ from .models import Product, Cart, CartItem, Wishlist
 
 @login_required
 def add_product(request):
+    company = Company.objects.get(user=request.user)
     if request.method == 'POST':
-        name = request.POST['name']
-        description = request.POST['description']
-        price = request.POST['price']
-        image = request.FILES.get('image')
-        stock_quantity = request.POST['stock_quantity']
-        warranty_period = request.POST['warranty_period']
-        is_available = request.POST.get('is_available') == 'True'
-        
-        product = Product.objects.create(
-            name=name,
-            description=description,
-            price=price,
-            image=image,
-            stock_quantity=stock_quantity,
-            warranty_period=warranty_period,
-            is_available=is_available,
-            company=request.user
-        )
-        messages.success(request, 'Product added successfully.')
-        return redirect('company_dashboard')
-    return render(request, 'add_product.html')
+        form = ProductForm(request.POST)
+        image_formset = ProductImageFormSet(request.POST, request.FILES)
+        if form.is_valid() and image_formset.is_valid():
+            product = form.save(commit=False)
+            product.company = company
+            product.save()
+            image_formset.instance = product
+            image_formset.save()
+            return redirect('company_dashboard')
+    else:
+        form = ProductForm()
+        image_formset = ProductImageFormSet()
+    return render(request, 'add_product.html', {'form': form, 'image_formset': image_formset})
 
 
 @login_required
 def company_dashboard(request):
-    if not request.user.is_company:
-        return redirect('login_company')
-    products = Product.objects.all()
+    # Get the company associated with the logged-in user
+    company = Company.objects.get(user=request.user)
+    
+    # Filter products to only show those associated with the logged-in company
+    products = Product.objects.filter(company=company)
+    
     return render(request, 'company_dashboard.html', {'products': products})
 
 def browse_customer(request):
@@ -227,13 +223,15 @@ def toggle_product_availability(request, product_id):
 
 
 
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Product
+
 @login_required
 def remove_product(request, product_id):
-    if request.method == 'POST':
-        product = get_object_or_404(Product, id=product_id, company=request.user)
-        product.delete()
-        # messages.success(request, 'Product removed successfully.')
-    return redirect('company_dashboard')
+    product = get_object_or_404(Product, id=product_id, company=request.user)
+    product.delete()
+    return redirect('company_dashboard')  # or wherever you want to redirect after deletion
 
 @login_required
 def add_to_cart(request, product_id):

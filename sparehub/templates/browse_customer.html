@@ -30,7 +30,7 @@
                     </li>
                 </ul>
                 <form class="d-flex" method="GET" action="{% url 'browse_customer' %}">
-                    <input class="form-control me-2" type="search" placeholder="Search products" aria-label="Search" name="search">
+                    <input class="form-control me-2" type="search" placeholder="Search products" aria-label="Search" name="search" value="{{ request.GET.search }}">
                     <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
                 <ul class="navbar-nav ms-auto">

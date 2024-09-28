@@ -7,6 +7,10 @@ from spares import views as spares_views
 from django.urls import path
 from . import views  # Import views from the current app
 
+
+from django.contrib.auth import views as auth_views
+
+
 urlpatterns = [
     path('', views.home, name='home'),  # Home view
     path('register/customer/', views.register_customer, name='register_customer'),
@@ -29,5 +33,12 @@ urlpatterns = [
     path('add-to-wishlist/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
     path('remove-from-wishlist/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
     path('view-wishlist/', views.view_wishlist, name='view_wishlist'),
+
+    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
+    path('dashboard/remove_product/<int:product_id>/', views.remove_product, name='remove_product'),
+
+
+
+    
 ]
 
