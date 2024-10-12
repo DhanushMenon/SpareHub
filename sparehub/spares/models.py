@@ -9,9 +9,11 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 class User(AbstractUser):
-    phone_number = models.CharField(max_length=15, blank=True, unique=True)  # Ensure unique phone numbers
-    is_customer = models.BooleanField(default=False)
-    is_company = models.BooleanField(default=False)
+    phone_number = models.CharField(max_length=15, blank=True)
+    user_type = models.CharField(max_length=10, choices=[
+        ('CUSTOMER', 'Customer'),
+        ('COMPANY', 'Company')
+    ], default='CUSTOMER')
 
     def __str__(self):
         return self.username
@@ -22,7 +24,7 @@ class User(AbstractUser):
         ]
 
 class Customer(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='customer')
     address = models.TextField(blank=True)
     zipcode = models.CharField(max_length=10, blank=True)
 
@@ -30,10 +32,12 @@ class Customer(models.Model):
         return f"Customer: {self.user.username}"
 
 class Company(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='company')
     registration_number = models.CharField(max_length=50, unique=True)
-    company_name = models.CharField(max_length=100, unique=True)  # Ensure unique company names
+    company_name = models.CharField(max_length=100, unique=True)
     company_address = models.TextField()
+    is_approved = models.BooleanField(default=False)  # Field to track approval status
+
 
     def __str__(self):
         return self.company_name
@@ -57,7 +61,7 @@ class Product(models.Model):
         ('WHEELS', 'Wheels'),
     ]
 
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=100)
     description = models.TextField()
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
@@ -81,7 +85,6 @@ class ProductImage(models.Model):
     image = models.ImageField(upload_to='product_images/')
 
 class Cart(models.Model):
-    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

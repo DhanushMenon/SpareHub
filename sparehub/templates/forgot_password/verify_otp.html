@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Verify OTP</h2>
+        <p>An OTP has been sent to your email. Please enter the OTP below to proceed.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            
+            <input type="hidden" name="email" value="{{ form.email.value }}">
+            
+            <div class="form-group">
+                {{ form.otp.label_tag }}
+                <input type="number" name="otp" pattern="\d{6}" required title="Enter a 6-digit OTP" class="form-control" min="100000" max="999999" placeholder="Enter OTP" />
+                {{ form.otp.errors }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Verify OTP</button>
+        </form>
+
+        <script>
+            // Additional JS validation for OTP if needed
+        </script>
+    </div>
+</body>
+</html>
+

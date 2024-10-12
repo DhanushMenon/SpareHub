@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Company Profile</title>
+</head>
+<body>
+    <h1>Complete Your Company Profile</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="company_name">Company Name:</label>
+        <input type="text" id="company_name" name="company_name" value="{{ company.company_name }}" required>
+        
+        <label for="registration_number">Registration Number:</label>
+        <input type="text" id="registration_number" name="registration_number" value="{{ company.registration_number }}" required>
+        
+        <label for="company_address">Company Address:</label>
+        <textarea id="company_address" name="company_address" required>{{ company.company_address }}</textarea>
+        
+        <button type="submit">Save Profile</button>
+    </form>
+</body>
+</html>

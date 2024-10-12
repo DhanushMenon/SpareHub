@@ -13,14 +13,14 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'browse_customer' %}">SpareHub</a>
+            <a class="navbar-brand" href="{% url 'spares:browse_customer' %}">SpareHub</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'browse_customer' %}">Home</a>
+                        <a class="nav-link" href="{% url 'spares:browse_customer' %}">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Categories</a>
@@ -29,16 +29,16 @@
                         <a class="nav-link" href="#">Deals</a>
                     </li>
                 </ul>
-                <form class="d-flex" method="GET" action="{% url 'browse_customer' %}">
+                <form class="d-flex" method="GET" action="{% url 'spares:browse_customer' %}">
                     <input class="form-control me-2" type="search" placeholder="Search products" aria-label="Search" name="search" value="{{ request.GET.search }}">
                     <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'view_wishlist' %}"><i class="fas fa-heart"></i> Wishlist</a>
+                        <a class="nav-link" href="{% url 'spares:view_wishlist' %}"><i class="fas fa-heart"></i> Wishlist</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'view_cart' %}"><i class="fas fa-shopping-cart"></i> Cart</a>
+                        <a class="nav-link" href="{% url 'spares:view_cart' %}"><i class="fas fa-shopping-cart"></i> Cart</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -77,8 +77,8 @@
                 {% for product in products %}
                     <div class="col">
                         <div class="card h-100 product-card">
-                            {% if product.image %}
-                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            {% if product.images.first %}
+                                <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
                             {% else %}
                                 <img src="{% static 'images/default_product.png' %}" class="card-img-top" alt="{{ product.name }}">
                             {% endif %}
@@ -86,9 +86,6 @@
                                 <h5 class="card-title">{{ product.name }}</h5>
                                 <p class="card-text">{{ product.description|truncatewords:20 }}</p>
                                 <p class="card-text"><strong>Price: ${{ product.price }}</strong></p>
-                                <p class="card-text">Stock: {{ product.stock_quantity }}</p>
-                                <p class="card-text">Warranty: {{ product.warranty_period }} months</p>
-                                <p class="card-text">Seller: {{ product.company.username }}</p>
                             </div>
                             <div class="card-footer d-flex justify-content-between align-items-center">
                                 <button class="btn btn-primary btn-sm add-to-cart" data-product-id="{{ product.id }}">Add to Cart</button>
@@ -141,12 +138,11 @@
             $('.add-to-cart').click(function() {
                 var productId = $(this).data('product-id');
                 $.ajax({
-                    url: '/add-to-cart/' + productId + '/',
+                    url: '{% url "spares:add_to_cart" 0 %}'.replace('0', productId),
                     type: 'POST',
                     headers: {'X-CSRFToken': '{{ csrf_token }}'},
                     success: function(response) {
                         alert('Product added to cart!');
-                        $('#cart-count').text(response.cart_count);
                     },
                     error: function() {
                         alert('Error adding product to cart.');
@@ -158,13 +154,14 @@
                 var productId = $(this).data('product-id');
                 var button = $(this);
                 $.ajax({
-                    url: '/add-to-wishlist/' + productId + '/',
+                    url: '{% url "spares:add_to_wishlist" 0 %}'.replace('0', productId),
                     type: 'POST',
                     headers: {'X-CSRFToken': '{{ csrf_token }}'},
                     success: function(response) {
                         if (response.success) {
                             button.html('<i class="fas fa-heart"></i> Wishlisted');
                             button.prop('disabled', true);
+                            alert(response.message);
                         }
                     },
                     error: function() {

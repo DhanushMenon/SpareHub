@@ -1,6 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import User, Company, Customer, Product, ProductImage
 
 class CustomerRegistrationForm(UserCreationForm):
@@ -81,3 +80,46 @@ class ProductImageForm(forms.ModelForm):
 
 ProductImageFormSet = forms.inlineformset_factory(Product, ProductImage, form=ProductImageForm, extra=1)
 
+
+class CustomUserCreationForm(UserCreationForm):
+    user_type = forms.ChoiceField(choices=User.user_type.field.choices)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'phone_number', 'user_type', 'password1', 'password2')
+
+class CustomAuthenticationForm(AuthenticationForm):
+    class Meta:
+        model = User
+
+
+
+
+
+
+
+
+from django import forms
+
+# Forgot Password Form
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(label='Email', max_length=100)
+
+# OTP Verification Form
+class OTPVerificationForm(forms.Form):
+    otp = forms.IntegerField(label='OTP', widget=forms.NumberInput(attrs={'min': 100000, 'max': 999999}))
+    email = forms.EmailField(widget=forms.HiddenInput())  # This is hidden to store email for OTP verification
+
+# Password Reset Form
+class PasswordResetForm(forms.Form):
+    new_password = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 8}), label='New Password')
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 8}), label='Confirm Password')
+
+    # Validate that the two password fields match
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+
+        if new_password and confirm_password and new_password != confirm_password:
+            raise forms.ValidationError("Passwords do not match")

@@ -6,39 +6,49 @@ from spares import views as spares_views
 
 from django.urls import path
 from . import views  # Import views from the current app
-
+from .views import login_view, register_view
 
 from django.contrib.auth import views as auth_views
 
 
+app_name = 'spares'
+
 urlpatterns = [
-    path('', views.home, name='home'),  # Home view
-    path('register/customer/', views.register_customer, name='register_customer'),
-    path('login/customer/', views.login_customer, name='login_customer'),
-    path('register/company/', views.register_company, name='register_company'),
-    path('login/company/', views.login_company, name='login_company'),
-    path('company_dashboard/', views.company_dashboard, name='company_dashboard'),
-    path('google-signup/', views.google_signup, name='google_signup'),
-    path('browse/', views.browse_customer, name='browse_customer'),
-    path('logout/', views.logout_view, name='logout'),  # General logout view
-    path('add_product/', views.add_product, name='add_product'),
-    path('edit-profile/', views.edit_company_profile, name='edit_company_profile'),
+    path('', views.home, name='home'),  # Add this line
+    path('login/', views.login_view, name='login_user'),  # Changed name to 'login_user'
+    path('register/', views.register_view, name='register_user'),  # Changed name to 'register_user'),
+    path('company-dashboard/', views.company_dashboard, name='company_dashboard'),
+    path('complete-company-profile/', views.complete_company_profile, name='complete_company_profile'),
+    path('edit-company-profile/', views.edit_company_profile, name='edit_company_profile'),
+    path('logout/', views.logout_view, name='logout'),  # Add this line
+    path('add-product/', views.add_product, name='add_product'),  # Add this line
     path('edit-product/<int:product_id>/', views.edit_product, name='edit_product'),
-    path('toggle-product-availability/<int:product_id>/', views.toggle_product_availability, name='toggle_product_availability'),
+    path('toggle-availability/<int:product_id>/', views.toggle_availability, name='toggle_availability'),
     path('remove-product/<int:product_id>/', views.remove_product, name='remove_product'),
+    path('browse/', views.browse_customer, name='browse_customer'),
     path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
-    path('remove-from-cart/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
-    path('view-cart/', views.view_cart, name='view_cart'),
-    path('update-cart-item/<int:item_id>/', views.update_cart_item, name='update_cart_item'),
     path('add-to-wishlist/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
+    path('cart/', views.view_cart, name='view_cart'),
+    path('wishlist/', views.view_wishlist, name='view_wishlist'),
     path('remove-from-wishlist/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
-    path('view-wishlist/', views.view_wishlist, name='view_wishlist'),
+    path('remove-from-cart/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
+    path('update-cart-item/<int:product_id>/', views.update_cart_item, name='update_cart_item'),
 
-    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
-    path('dashboard/remove_product/<int:product_id>/', views.remove_product, name='remove_product'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),
+    path('reset-password/', views.reset_password, name='reset_password'),
+
+
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('approve-company/<int:company_id>/', views.approve_company, name='approve_company'),
+    path('revoke-approval/<int:company_id>/', views.revoke_approval, name='revoke_approval'),  # New URL pattern
+    path('reject-company/<int:company_id>/', views.reject_company, name='reject_company'),
+
+    # For category in home page
+    path('category/<str:category>/', views.category_products, name='category_products'),  # New URL pattern
 
 
 
-    
+
 ]
 

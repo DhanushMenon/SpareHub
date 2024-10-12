@@ -50,7 +50,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
+            <a class="navbar-brand" href="{% url 'spares:home' %}">
                 <img src="{% static 'images/logo.png' %}" alt="SpareHub Logo" height="40">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,7 @@
                         <a class="nav-link" href="#">Profile</a>
                     </li>
                     <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}">
+                        <form method="post" action="{% url 'spares:logout' %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-link nav-link">Logout</button>
                         </form>
@@ -86,10 +86,10 @@
                 <div class="dashboard-card">
                     <h4>Quick Actions</h4>
                     <div class="list-group">
-                        <a href="{% url 'add_product' %}" class="list-group-item list-group-item-action">
+                        <a href="{% url 'spares:add_product' %}" class="list-group-item list-group-item-action">
                             <i class="fas fa-plus-circle me-2"></i>Add New Product
                         </a>
-                        <a href="{% url 'edit_company_profile' %}" class="list-group-item list-group-item-action">
+                        <a href="{% url 'spares:edit_company_profile' %}" class="list-group-item list-group-item-action">
                             <i class="fas fa-user-edit me-2"></i>Edit Profile
                         </a>
                         <a href="#" class="list-group-item list-group-item-action">
@@ -119,24 +119,24 @@
                                 <td>{{ product.name }}</td>
                                 <td>${{ product.price }}</td>
                                 <td>
-                                    <span class="badge bg-{% if product.is_available %}success{% else %}danger{% endif %}">
-                                        {% if product.is_available %}Available{% else %}Unavailable{% endif %}
+                                    <span class="badge bg-{% if product.availability %}success{% else %}danger{% endif %}">
+                                        {% if product.availability %}Available{% else %}Not Available{% endif %}
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-outline-primary btn-custom">
+                                    <a href="{% url 'spares:edit_product' product.id %}" class="btn btn-sm btn-outline-primary btn-custom">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>
-                                    <form method="post" action="{% url 'toggle_product_availability' product.id %}" style="display: inline;">
+                                    <a href="{% url 'spares:toggle_availability' product.id %}" class="btn btn-sm btn-outline-{% if product.availability %}warning{% else %}success{% endif %} btn-custom">
+                                        <i class="fas fa-{% if product.availability %}pause{% else %}play{% endif %}"></i>
+                                        {% if product.availability %}Pause{% else %}Resume{% endif %}
+                                    </a>
+                                    <form method="post" action="{% url 'spares:remove_product' product.id %}" style="display: inline;">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-{% if product.is_available %}warning{% else %}success{% endif %} btn-custom">
-                                            <i class="fas fa-{% if product.is_available %}pause{% else %}play{% endif %}"></i>
-                                            {% if product.is_available %}Pause{% else %}Resume{% endif %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger btn-custom" onclick="return confirm('Are you sure you want to remove this product?');">
+                                            <i class="fas fa-trash-alt"></i> Remove
                                         </button>
                                     </form>
-                                    <button class="btn btn-sm btn-outline-danger btn-custom" data-bs-toggle="modal" data-bs-target="#removeProductModal{{ product.id }}">
-                                        <i class="fas fa-trash-alt"></i> Remove
-                                    </button>
                                 </td>
                             </tr>
                             {% empty %}
@@ -164,7 +164,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form method="post" action="{% url 'remove_product' product.id %}">
+                    <form method="post" action="{% url 'spares:remove_product' product.id %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger">Remove</button>
                     </form>
