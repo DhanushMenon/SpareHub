@@ -15,6 +15,14 @@ from .models import Product, Cart, CartItem, Wishlist
 from django.urls import reverse
 from django.views.decorators.cache import cache_control
 from django.views.decorators.cache import cache_control
+import json
+import razorpay
+from django.conf import settings
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views import View
+from .models import Cart, CartItem
 
 
 
@@ -320,9 +328,16 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def view_cart(request):
-    cart = Cart.objects.filter(user=request.user).first()
-    cart_items = cart.cartitem_set.all() if cart else []  # Use cartitem_set to access related items
-    return render(request, 'view_cart.html', {'cart_items': cart_items})
+    # Get or create a cart for the user
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    
+    # Get all cart items
+    cart_items = cart.cartitem_set.all()
+    
+    # Calculate total amount
+    total_amount = sum(item.subtotal() for item in cart_items)
+    
+    return render(request, 'view_cart.html', {'cart_items': cart_items, 'total_amount': total_amount})
 
 @login_required
 def remove_from_wishlist(request, product_id):
@@ -336,28 +351,26 @@ def remove_from_wishlist(request, product_id):
 
 @login_required
 def remove_from_cart(request, product_id):
-       cart = Cart.objects.filter(user=request.user).first()
-       if cart:
-           cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
-           cart_item.delete()
-       return redirect('spares:view_cart')
+    cart = get_object_or_404(Cart, user=request.user)
+    cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+    cart_item.delete()
+    return redirect('spares:view_cart')
 
 
 @login_required
 def update_cart_item(request, product_id):
-       cart = Cart.objects.filter(user=request.user).first()
-       if cart:
-           cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
-           new_quantity = int(request.POST.get('quantity', 1))
-
-           if new_quantity <= 0:
-               cart_item.delete()  # Remove item if quantity is 0 or less
-           else:
-               cart_item.quantity = new_quantity
-               cart_item.clean()  # Validate the quantity against stock
-               cart_item.save()
-
-       return redirect('spares:view_cart')
+    cart = get_object_or_404(Cart, user=request.user)
+    cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+    
+    if request.method == 'POST':
+        quantity = int(request.POST.get('quantity', 1))
+        if quantity > 0:
+            cart_item.quantity = quantity
+            cart_item.save()
+        else:
+            cart_item.delete()  # Remove item if quantity is 0
+    
+    return redirect('spares:view_cart')
 
 
 
@@ -464,3 +477,79 @@ def product_detail(request, product_id):
     return render(request, 'product_detail.html', {
         'product': product
     })
+
+
+
+
+# Payment Gateway
+# views.py
+# views.py
+
+from django.shortcuts import render, get_object_or_404
+from .models import Cart, CartItem
+
+@login_required
+def payment_view(request):
+    # Get or create a cart for the user
+    cart = get_object_or_404(Cart, user=request.user)
+    
+    # Get all cart items
+    cart_items = cart.cartitem_set.all()
+    
+    # Calculate total amount
+    total_amount = sum(item.subtotal() for item in cart_items)  # Total in INR
+    total_amount_in_paise = total_amount * 100  # Convert to paise for Razorpay
+
+    return render(request, 'payment.html', {
+        'total_amount': total_amount,
+        'total_amount_in_paise': total_amount_in_paise
+    })
+
+class CreateOrderView(View):
+    def post(self, request):
+        try:
+            # Attempt to decode the JSON body
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        # Check if the required fields are present
+        amount = data.get('amount')
+        if amount is None:
+            return JsonResponse({'error': 'Amount is required'}, status=400)
+
+        # Create a Razorpay client
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+        # Define the order details
+        order_data = {
+            "amount": amount,  # Amount in paise
+            "currency": data.get('currency', 'INR'),  # Default to INR
+            "receipt": "receipt#1",
+            "payment_capture": 1  # Auto capture payment
+        }
+
+        # Create an order
+        order = client.order.create(data=order_data)
+        return JsonResponse(order)
+
+class PaymentVerificationView(View):
+    def post(self, request):
+        # Get the payment details from the request
+        payment_id = request.POST.get('razorpay_payment_id')
+        order_id = request.POST.get('razorpay_order_id')
+        signature = request.POST.get('razorpay_signature')
+
+        # Verify the payment signature
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        try:
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            })
+            # Payment is verified
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            # Payment verification failed
+            return JsonResponse({'status': 'failed', 'error': str(e)})
