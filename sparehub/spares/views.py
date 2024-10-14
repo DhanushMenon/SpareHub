@@ -14,6 +14,8 @@ from django.http import JsonResponse
 from .models import Product, Cart, CartItem, Wishlist
 from django.urls import reverse
 from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import cache_control
+
 
 
 # ... existing views ...
@@ -79,6 +81,7 @@ def register_view(request):
 
 from .forms import CustomAuthenticationForm  # Ensure you have the correct import for your form
 
+
 def login_view(request):
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, data=request.POST)
@@ -122,7 +125,7 @@ def login_view(request):
 
     return render(request, 'login_user.html', {'form': form})
 
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)  # Fixed whitespace
 @login_required
 def company_dashboard(request):
     # Fetch products for the logged-in company
@@ -209,12 +212,14 @@ def add_product(request):
 @login_required
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id, company=request.user.company)
+    
     if request.method == 'POST':
         form = ProductForm(request.POST, instance=product)
-        formset = ProductImageFormSet(request.POST, request.FILES, instance=product)
+        formset = ProductImageFormSet(request.POST, request.FILES, instance=product)  # Ensure request.FILES is included
+        
         if form.is_valid() and formset.is_valid():
-            form.save()
-            formset.save()
+            form.save()  # Save the product details
+            formset.save()  # Save the images
             return redirect('spares:company_dashboard')
     else:
         form = ProductForm(instance=product)
@@ -225,7 +230,6 @@ def edit_product(request, product_id):
         'formset': formset,
         'product': product
     })
-
 
 
 
@@ -248,19 +252,22 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from .models import Product
 
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @login_required
 def browse_customer(request):
-    products = Product.objects.filter(availability=True)
-    
-    # Handle search functionality
-    search_query = request.GET.get('search')
+    search_query = request.GET.get('search', '')
+    category_filter = request.GET.get('category', '')
+
+    products = Product.objects.all()
+
     if search_query:
-        products = products.filter(name__icontains=search_query)
-    
-    context = {
-        'products': products,
-    }
-    return render(request, 'browse_customer.html', context)
+        products = products.filter(name__icontains=search_query)  # Filter by product name
+
+    if category_filter:
+        products = products.filter(category=category_filter)  # Filter by category
+
+    return render(request, 'browse_customer.html', {'products': products})
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -307,6 +314,7 @@ def view_wishlist(request):
     wishlist_products = wishlist.products.all() if wishlist else []
     return render(request, 'view_wishlist.html', {'wishlist_products': wishlist_products})
 
+
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
@@ -328,28 +336,28 @@ def remove_from_wishlist(request, product_id):
 
 @login_required
 def remove_from_cart(request, product_id):
-    cart = Cart.objects.filter(user=request.user).first()
-    if cart:
-        cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
-        cart_item.delete()
-    return redirect('spares:view_cart')
+       cart = Cart.objects.filter(user=request.user).first()
+       if cart:
+           cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+           cart_item.delete()
+       return redirect('spares:view_cart')
 
 
 @login_required
 def update_cart_item(request, product_id):
-    cart = Cart.objects.filter(user=request.user).first()
-    if cart:
-        cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
-        new_quantity = int(request.POST.get('quantity', 1))
+       cart = Cart.objects.filter(user=request.user).first()
+       if cart:
+           cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+           new_quantity = int(request.POST.get('quantity', 1))
 
-        if new_quantity <= 0:
-            cart_item.delete()  # Remove item if quantity is 0 or less
-        else:
-            cart_item.quantity = new_quantity
-            cart_item.clean()  # Validate the quantity against stock
-            cart_item.save()
+           if new_quantity <= 0:
+               cart_item.delete()  # Remove item if quantity is 0 or less
+           else:
+               cart_item.quantity = new_quantity
+               cart_item.clean()  # Validate the quantity against stock
+               cart_item.save()
 
-    return redirect('spares:view_cart')
+       return redirect('spares:view_cart')
 
 
 
@@ -448,3 +456,11 @@ def reset_password(request):
 def category_products(request, category):
     products = Product.objects.filter(category=category)  # Filter products by category
     return render(request, 'category_products.html', {'products': products, 'category': category})
+
+
+
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    return render(request, 'product_detail.html', {
+        'product': product
+    })

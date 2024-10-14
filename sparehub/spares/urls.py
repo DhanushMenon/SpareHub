@@ -6,7 +6,7 @@ from spares import views as spares_views
 
 from django.urls import path
 from . import views  # Import views from the current app
-from .views import login_view, register_view
+from .views import login_view, register_view, product_detail 
 
 from django.contrib.auth import views as auth_views
 
@@ -46,6 +46,9 @@ urlpatterns = [
 
     # For category in home page
     path('category/<str:category>/', views.category_products, name='category_products'),  # New URL pattern
+
+
+    path('product/<int:product_id>/', product_detail, name='product_detail'),
 
 
 
