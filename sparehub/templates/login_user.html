@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,10 +64,19 @@
             <input type="password" id="password" name="password" required>
             
             <button type="submit">Login</button>
+           
             {% if error %}
                 <p style="color: red;">{{ error }}</p>
             {% endif %}
         </form>
+        <div class="social-login"></div>
+        <a href="{% url 'spares:social:begin' 'google-oauth2' %}">
+            <button class="google-button">
+                <img src="{% static 'images/google.png' %}" alt="Google Logo" style="width: 24px; height: 24px;">
+                Login with Google
+            </button>
+        </a>
+    </div>
     </div>
 </body>
 </html>

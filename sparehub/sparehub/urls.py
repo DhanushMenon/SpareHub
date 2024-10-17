@@ -26,6 +26,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('spares.urls')),  # Include URLs from the spares app
     path('logout/', LogoutView.as_view(next_page='spares:home'), name='logout'),  # Add this line
+    path('', include('social_django.urls', namespace='social')),  # Change this line
+
+
+    
 ]
 
 if settings.DEBUG:

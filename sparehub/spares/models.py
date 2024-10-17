@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
-
+from django.contrib.auth.models import UserManager
 from django.contrib.auth.models import User
 
 from django.contrib.auth.models import AbstractUser
@@ -15,6 +15,7 @@ class User(AbstractUser):
         ('COMPANY', 'Company')
     ], default='CUSTOMER')
 
+    objects = UserManager()
     def __str__(self):
         return self.username
 
@@ -77,6 +78,8 @@ class Product(models.Model):
     stock_quantity = models.PositiveIntegerField()
     warranty = models.CharField(max_length=100)  # This is probably the field you're using now
     availability = models.BooleanField(default=True)
+    quantity = models.PositiveIntegerField(default=0)
+    company_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
 
     def __str__(self):
         return self.name
@@ -122,3 +125,14 @@ class Wishlist(models.Model):
 
     def __str__(self):
         return f"Wishlist for {self.user.username}"
+
+class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='customer_orders')
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    order_date = models.DateTimeField(auto_now_add=True)
+    address = models.TextField()
+    company_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='company_orders')
+    
+    def __str__(self):
+        return f"Order {self.id} by {self.user.username}"

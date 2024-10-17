@@ -71,6 +71,10 @@
         </div>
     </div>
 
+    <form id="address-form">
+        <textarea name="address" required placeholder="Enter your delivery address"></textarea>
+    </form>
+
     <script>
         document.getElementById('pay-button').onclick = function() {
             fetch('/create-order/', {  // Adjust the URL to your CreateOrderView
@@ -101,8 +105,26 @@
                     "image": "https://example.com/your_logo",  // Your logo URL
                     "order_id": data.id,  // Order ID created by Razorpay
                     "handler": function (response) {
-                        // Handle successful payment here
-                        alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
+                        // Send payment and address info to server
+                        fetch('/payment-success/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                payment_id: response.razorpay_payment_id,
+                                address: document.querySelector('textarea[name="address"]').value
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = '/payment-success/';
+                            } else {
+                                alert('Payment failed. Please try again.');
+                            }
+                        });
                     },
                     "theme": {
                         "color": "#F37254"

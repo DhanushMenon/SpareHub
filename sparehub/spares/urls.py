@@ -10,6 +10,12 @@ from .views import login_view, register_view, product_detail, CreateOrderView, P
 
 
 from django.contrib.auth import views as auth_views
+from django.conf.urls import include
+from django.views.decorators.csrf import csrf_exempt
+
+from social_django import views as social_views
+
+
 
 
 app_name = 'spares'
@@ -57,6 +63,12 @@ urlpatterns = [
 
 
 
+    path('payment-success/', views.payment_success, name='payment_success'),
+    path('company-orders/', views.company_orders, name='company_orders'),
+
+
+    path('oauth/', include('social_django.urls', namespace='social')),
+    path('complete/<backend>/', csrf_exempt(social_views.complete), name='social:complete'),
 
 
 ]

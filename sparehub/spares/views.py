@@ -132,11 +132,12 @@ def login_view(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)  # Fixed whitespace
 @login_required
 def company_dashboard(request):
-    # Fetch products for the logged-in company
     products = Product.objects.filter(company=request.user.company).order_by('-id')
+    orders = Order.objects.filter(product__company_user=request.user).distinct().order_by('-order_date')
     
     context = {
         'products': products,
+        'orders': orders,
     }
     return render(request, 'company_dashboard.html', context)
 
@@ -557,4 +558,46 @@ class PaymentVerificationView(View):
             return JsonResponse({'status': 'failed', 'error': str(e)})
 
 
+
+
+
+@login_required
+def payment_success(request):
+    if request.method == 'POST':
+        cart = Cart.objects.get(user=request.user)
+        cart_items = cart.cartitem_set.all()
+        
+        for cart_item in cart_items:
+            product = cart_item.product
+            if product.quantity >= cart_item.quantity:
+                Order.objects.create(
+                    user=request.user,
+                    product=product,
+                    quantity=cart_item.quantity,
+                    address=request.POST.get('address', ''),
+                    company_user=product.company_user
+                )
+                product.quantity -= cart_item.quantity
+                product.save()
+            else:
+                # Handle insufficient stock
+                pass
+        
+        # Clear the cart
+        cart.cartitem_set.all().delete()
+        
+        return render(request, 'payment_success.html')
+    return redirect('view_cart')
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import user_passes_test
+from .models import Order
+
+def is_company_user(user):
+    return user.is_authenticated and user.is_staff
+
+@user_passes_test(is_company_user)
+def company_orders(request):
+    orders = Order.objects.filter(company_user=request.user).order_by('-order_date')
+    return render(request, 'company_orders.html', {'orders': orders})
 

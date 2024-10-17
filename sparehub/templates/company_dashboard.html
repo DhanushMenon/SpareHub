@@ -109,6 +109,7 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Price</th>
+                                <th>Quantity Left</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -118,6 +119,7 @@
                             <tr>
                                 <td>{{ product.name }}</td>
                                 <td>${{ product.price }}</td>
+                                <td>{{ product.quantity }}</td>
                                 <td>
                                     <span class="badge bg-{% if product.availability %}success{% else %}danger{% endif %}">
                                         {% if product.availability %}Available{% else %}Not Available{% endif %}
@@ -131,17 +133,11 @@
                                         <i class="fas fa-{% if product.availability %}pause{% else %}play{% endif %}"></i>
                                         {% if product.availability %}Pause{% else %}Resume{% endif %}
                                     </a>
-                                    <!-- <form method="post" action="{% url 'spares:remove_product' product.id %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger btn-custom" onclick="return confirm('Are you sure you want to remove this product?');">
-                                            <i class="fas fa-trash-alt"></i> Remove
-                                        </button>
-                                    </form> -->
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="text-center">No products available.</td>
+                                <td colspan="5" class="text-center">No products available.</td>
                             </tr>
                             {% endfor %}
                         </tbody>

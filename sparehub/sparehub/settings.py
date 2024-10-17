@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'spares',
+    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware', 
 ]
 
 ROOT_URLCONF = 'sparehub.urls'
@@ -164,3 +166,47 @@ load_dotenv()
 RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
 
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('CLIENT_ID') 
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('CLIENT_SECRET')
+
+
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.google.GoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',  
+    'social_core.pipeline.social_auth.social_uid',      
+    'social_core.pipeline.social_auth.auth_allowed',    
+    'social_core.pipeline.social_auth.social_user',     
+    'social_core.pipeline.user.get_username',          
+    'social_core.pipeline.user.create_user',
+    'spares.pipeline.ensure_customer_user',  # Ensures only customers can log in
+    'spares.pipeline.set_role',                     
+    'social_core.pipeline.social_auth.associate_user',  
+    'social_core.pipeline.social_auth.load_extra_data', 
+    'social_core.pipeline.user.user_details',          
+)
+
+
+
+SOCIAL_AUTH_URL_NAMESPACE = 'social'
+LOGIN_URL = '/login/'
+
+LOGIN_REDIRECT_URL = 'spares:browse_customer'
+LOGOUT_REDIRECT_URL = 'home'
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://127.0.0.1:8000/complete/google-oauth2/'
+
+
+
+AUTH_USER_MODEL = 'spares.User'
+
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+
+SESSION_COOKIE_SECURE = True  # Only if you're using HTTPS
+CSRF_COOKIE_SECURE = True  # Only if you're using HTTPS
