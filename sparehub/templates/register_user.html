@@ -51,6 +51,9 @@
         button:hover {
             background-color: #218838;
         }
+        .company-fields {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -58,9 +61,65 @@
         <h2>Register for SpareHub</h2>
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            {{ form.non_field_errors }}
+            <div>
+                <label for="{{ form.username.id_for_label }}">Username:</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+            <div>
+                <label for="{{ form.email.id_for_label }}">Email:</label>
+                {{ form.email }}
+                {{ form.email.errors }}
+            </div>
+            <div>
+                <label for="{{ form.password1.id_for_label }}">Password:</label>
+                {{ form.password1 }}
+                {{ form.password1.errors }}
+            </div>
+            <div>
+                <label for="{{ form.password2.id_for_label }}">Confirm Password:</label>
+                {{ form.password2 }}
+                {{ form.password2.errors }}
+            </div>
+            <div>
+                <label for="{{ form.user_type.id_for_label }}">User Type:</label>
+                {{ form.user_type }}
+                {{ form.user_type.errors }}
+            </div>
+            <div class="company-fields">
+                <div>
+                    <label for="{{ form.car_makes.id_for_label }}">Car Makes:</label>
+                    {{ form.car_makes }}
+                    {{ form.car_makes.errors }}
+                </div>
+                <div>
+                    <label for="{{ form.part_categories.id_for_label }}">Part Categories:</label>
+                    {{ form.part_categories }}
+                    {{ form.part_categories.errors }}
+                </div>
+                <div>
+                    <label for="{{ form.manufacturing_type.id_for_label }}">Manufacturing Type:</label>
+                    {{ form.manufacturing_type }}
+                    {{ form.manufacturing_type.errors }}
+                </div>
+            </div>
             <button type="submit">Register</button>
         </form>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userTypeSelect = document.getElementById('{{ form.user_type.id_for_label }}');
+            const companyFields = document.querySelector('.company-fields');
+
+            userTypeSelect.addEventListener('change', function() {
+                if (this.value === 'COMPANY') {
+                    companyFields.style.display = 'block';
+                } else {
+                    companyFields.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

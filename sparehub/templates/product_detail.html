@@ -56,7 +56,8 @@
     <main class="container my-4">
         <h1 class="mb-4">{{ product.name }}</h1>
         <div class="row">
-            <div class="col-md-6">
+            <!-- Left Column: Images -->
+            <div class="col-md-4">
                 <h5>Product Images</h5>
                 <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-inner">
@@ -76,7 +77,9 @@
                     </button>
                 </div>
             </div>
-            <div class="col-md-6">
+
+            <!-- Middle Column: Product Details -->
+            <div class="col-md-4">
                 <h5>Description</h5>
                 <p>{{ product.description }}</p>
                 <p><strong>Price: ${{ product.price }}</strong></p>
@@ -85,6 +88,20 @@
                 <button class="btn btn-outline-secondary add-to-wishlist" data-product-id="{{ product.id }}">
                     <i class="far fa-heart"></i> Wishlist
                 </button>
+            </div>
+
+            <!-- Right Column: Shipment Details -->
+            <div class="col-md-4">
+                <h5>Shipment Details</h5>
+                <p><strong>Available for shipment to:</strong></p>
+                <ul>
+                    <li>Domestic</li>
+                    <li>International</li>
+                </ul>
+                <p><strong>Estimated Delivery:</strong></p>
+                <p>3-5 business days for domestic, 7-10 days for international.</p>
+                <h5>Related Information</h5>
+                <p>Check the compatibility with your vehicle using the provided Universal Part Number (UPN): <strong>{{ product.universal_part_number }}</strong></p>
             </div>
         </div>
     </main>

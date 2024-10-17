@@ -36,8 +36,10 @@ class Company(models.Model):
     registration_number = models.CharField(max_length=50, unique=True)
     company_name = models.CharField(max_length=100, unique=True)
     company_address = models.TextField()
-    is_approved = models.BooleanField(default=False)  # Field to track approval status
-
+    is_approved = models.BooleanField(default=False)
+    car_makes = models.CharField(max_length=255, blank=True)
+    part_categories = models.CharField(max_length=255, blank=True)
+    manufacturing_type = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
         return self.company_name
@@ -47,6 +49,7 @@ class Company(models.Model):
 
 class Product(models.Model):
     CATEGORY_CHOICES = [
+        ('Any', 'Any'),
         ('BODY', 'Body'),
         ('ENGINE', 'Engine'),
         ('TRANSMISSION', 'Transmission'),
@@ -65,6 +68,7 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    car_makes = models.CharField(max_length=255, blank=True)
     price = models.DecimalField(
         max_digits=10, 
         decimal_places=2, 
@@ -118,4 +122,3 @@ class Wishlist(models.Model):
 
     def __str__(self):
         return f"Wishlist for {self.user.username}"
-

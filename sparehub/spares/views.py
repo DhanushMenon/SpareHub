@@ -34,28 +34,32 @@ def home(request):
 # Admin_Dashboard
 
 def admin_dashboard(request):
-    if not request.user.is_staff:  # Ensure only staff/admin users can access
-         return redirect('spares:home')
-
-    # companies = Company.objects.all()  # Fetch all registered companies
-    # return render(request, 'admin_dashboard.html', {'companies': companies})
-    companies = Company.objects.all()  # Fetch all companies from the database
-    return render(request, 'admin_dashboard.html', {'companies': companies}) 
+    if not request.user.is_staff:
+        return redirect('spares:home')
+    
+    companies = Company.objects.all().order_by('-id')
+    return render(request, 'admin_dashboard.html', {'companies': companies})
 
 
 
 
 def approve_company(request, company_id):
+    if not request.user.is_staff:
+        return redirect('spares:home')
     company = get_object_or_404(Company, id=company_id)
     company.is_approved = True
     company.save()
-    return redirect('spares:admin_dashboard')  # Redirect to the admin dashboard or wherever you want
+    messages.success(request, f'{company.company_name} has been approved.')
+    return redirect('spares:admin_dashboard')
 
 def revoke_approval(request, company_id):
+    if not request.user.is_staff:
+        return redirect('spares:home')
     company = get_object_or_404(Company, id=company_id)
     company.is_approved = False
     company.save()
-    return redirect('spares:admin_dashboard')  # Redirect to the admin dashboard or wherever you want
+    messages.success(request, f'Approval for {company.company_name} has been revoked.')
+    return redirect('spares:admin_dashboard')
 
 def reject_company(request, company_id):
     company = Company.objects.get(id=company_id)
@@ -66,25 +70,32 @@ def reject_company(request, company_id):
 
 
 
-
 def register_view(request):
     if request.method == 'POST':
+        user_type = request.POST.get('user_type')  # Get the user type from the form
         form = CustomUserCreationForm(request.POST)
+
         if form.is_valid():
-            user = form.save()
-            if user.user_type == 'COMPANY':
-                # Create a basic Company instance
+            user = form.save(commit=False)
+            user.user_type = user_type  # Set user type based on the form input
+            user.save()
+
+            if user_type == 'COMPANY':
                 Company.objects.create(
                     user=user,
-                    company_name=user.username,  # Use username as the company name
-                    registration_number=f"REG-{user.id}",  # Generate a temporary registration number
-                    company_address="Address to be updated"
+                    company_name=form.cleaned_data.get('company_name', user.username),
+                    registration_number=form.cleaned_data.get('registration_number', f"REG-{user.id}"),
+                    company_address=form.cleaned_data.get('company_address', "Address to be updated"),
+                    is_approved=False
                 )
-            # Instead of logging in the user, redirect to the login page
-            #messages.success(request, 'Registration successful! Please log in.')
-            return redirect('spares:login_user')  # Redirect to the login page
+              #  messages.success(request, 'Registration successful! Please wait for admin approval before logging in.')
+            elif user_type == 'CUSTOMER':
+             messages.success(request, 'Registration successful! You can now log in.')
+
+            return redirect('spares:login_user')
     else:
         form = CustomUserCreationForm()
+
     return render(request, 'register_user.html', {'form': form})
 
 from .forms import CustomAuthenticationForm  # Ensure you have the correct import for your form
@@ -92,46 +103,31 @@ from .forms import CustomAuthenticationForm  # Ensure you have the correct impor
 
 def login_view(request):
     if request.method == 'POST':
-        form = CustomAuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
 
-            if user is not None:
-                # Check if the user is a superuser
-                if user.is_superuser:
-                    login(request, user)
-                    return redirect('spares:admin_dashboard')  # Redirect to the admin dashboard
+        if user is not None:
+            if user.is_staff:  # Admin user
+                login(request, user)
+                return redirect('spares:admin_dashboard')  # Redirect to admin dashboard
 
-                # Check if the user is a company and if it's approved
-                elif user.user_type == 'COMPANY':
-                    if hasattr(user, 'company') and user.company.is_approved:
-                        login(request, user)
-                        return redirect('spares:company_dashboard')  # Redirect to company dashboard
-                    else:
-                        # Company not approved
-                        return render(request, 'login_user.html', {
-                            'form': form,
-                            'error': 'Your company is not approved yet.'
-                        })
+            if user.user_type == 'COMPANY':
+                if not user.company.is_approved:
+                    messages.error(request, 'Your company registration is pending approval.')
+                    return render(request, 'login_user.html')
 
-                # For customers, redirect to the customer browsing page
-                elif user.user_type == 'CUSTOMER':
-                    login(request, user)
-                    return redirect('spares:browse_customer')
+                login(request, user)
+                return redirect('spares:company_dashboard')  # Redirect to company dashboard
 
-            else:
-                # Invalid credentials
-                return render(request, 'login_user.html', {
-                    'form': form,
-                    'error': 'Invalid credentials.'
-                })
+            if user.user_type == 'CUSTOMER':
+                login(request, user)
+                return redirect('spares:browse_customer')  # Redirect to customer browsing page
 
-    else:
-        form = CustomAuthenticationForm()
+        else:
+            messages.error(request, 'Invalid username or password.')
 
-    return render(request, 'login_user.html', {'form': form})
+    return render(request, 'login_user.html')
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)  # Fixed whitespace
 @login_required
@@ -219,25 +215,21 @@ def add_product(request):
 
 @login_required
 def edit_product(request, product_id):
-    product = get_object_or_404(Product, id=product_id, company=request.user.company)
-    
+    product = get_object_or_404(Product, id=product_id)
     if request.method == 'POST':
         form = ProductForm(request.POST, instance=product)
-        formset = ProductImageFormSet(request.POST, request.FILES, instance=product)  # Ensure request.FILES is included
-        
+        formset = ProductImageFormSet(request.POST, request.FILES, instance=product)
+
         if form.is_valid() and formset.is_valid():
-            form.save()  # Save the product details
+            form.save()
             formset.save()  # Save the images
+            messages.success(request, 'Product updated successfully!')
             return redirect('spares:company_dashboard')
     else:
         form = ProductForm(instance=product)
         formset = ProductImageFormSet(instance=product)
-    
-    return render(request, 'edit_product.html', {
-        'form': form,
-        'formset': formset,
-        'product': product
-    })
+
+    return render(request, 'edit_product.html', {'form': form, 'formset': formset})
 
 
 
@@ -266,14 +258,18 @@ from .models import Product
 def browse_customer(request):
     search_query = request.GET.get('search', '')
     category_filter = request.GET.get('category', '')
+    car_make_filter = request.GET.get('car_make', '')
 
     products = Product.objects.all()
 
     if search_query:
-        products = products.filter(name__icontains=search_query)  # Filter by product name
+        products = products.filter(name__icontains=search_query)
 
     if category_filter:
-        products = products.filter(category=category_filter)  # Filter by category
+        products = products.filter(category=category_filter)
+
+    if car_make_filter and car_make_filter != "ANY":
+        products = products.filter(car_makes=car_make_filter)  # Assuming you have a car_make field in your Product model
 
     return render(request, 'browse_customer.html', {'products': products})
 
@@ -288,8 +284,10 @@ def add_to_cart(request, product_id):
     cart_item, item_created = CartItem.objects.get_or_create(cart=cart, product=product)
     
     if not item_created:
-        cart_item.quantity += 1
-        cart_item.save()
+        return JsonResponse({'success': False, 'message': 'Product is already in the cart.'})
+    
+    cart_item.quantity += 1
+    cart_item.save()
     
     return JsonResponse({'success': True, 'message': 'Product added to cart successfully'})
 
@@ -298,6 +296,10 @@ def add_to_cart(request, product_id):
 def add_to_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     wishlist, created = Wishlist.objects.get_or_create(user=request.user)
+    
+    if product in wishlist.products.all():
+        return JsonResponse({'success': False, 'message': 'Product is already in the wishlist.'})
+    
     wishlist.products.add(product)
     return JsonResponse({'success': True, 'message': 'Product added to wishlist successfully'})
 
@@ -496,13 +498,13 @@ def payment_view(request):
     # Get all cart items
     cart_items = cart.cartitem_set.all()
     
-    # Calculate total amount
+    # Calculate total amount (no GST or shipping charges)
     total_amount = sum(item.subtotal() for item in cart_items)  # Total in INR
-    total_amount_in_paise = total_amount * 100  # Convert to paise for Razorpay
+    total_bill = total_amount  # Total bill is now just the total amount
 
     return render(request, 'payment.html', {
         'total_amount': total_amount,
-        'total_amount_in_paise': total_amount_in_paise
+        'total_amount_in_paise': total_amount * 100  # Convert to paise
     })
 
 class CreateOrderView(View):
@@ -553,3 +555,6 @@ class PaymentVerificationView(View):
         except Exception as e:
             # Payment verification failed
             return JsonResponse({'status': 'failed', 'error': str(e)})
+
+
+

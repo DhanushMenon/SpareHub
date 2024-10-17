@@ -68,9 +68,23 @@ class CompanyProfileForm(forms.ModelForm):
 
 
 class ProductForm(forms.ModelForm):
+    car_makes = forms.MultipleChoiceField(
+        choices=[
+            ('Any', 'Any'),
+            ('TOYOTA', 'Toyota'),
+            ('HONDA', 'Honda'),
+            ('FORD', 'Ford'),
+            ('BMW', 'BMW'),
+            ('MERCEDES', 'Mercedes-Benz'),
+            # Add more car makes as needed
+        ],
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
+    )
+
     class Meta:
         model = Product
-        fields = ['name', 'description', 'category', 'price', 'stock_quantity', 'warranty', 'availability']
+        fields = ['name', 'description', 'category', 'price', 'stock_quantity', 'warranty', 'availability', 'car_makes']
+
 
 class ProductImageForm(forms.ModelForm):
     image = forms.ImageField(label='Image')
@@ -83,15 +97,71 @@ ProductImageFormSet = forms.inlineformset_factory(Product, ProductImage, form=Pr
 
 class CustomUserCreationForm(UserCreationForm):
     user_type = forms.ChoiceField(choices=User.user_type.field.choices)
+    car_makes = forms.MultipleChoiceField(
+        choices=[
+            ('Any', 'Any'),
+            ('TOYOTA', 'Toyota'),
+            ('HONDA', 'Honda'),
+            ('FORD', 'Ford'),
+            ('BMW', 'BMW'),
+            ('MERCEDES', 'Mercedes-Benz'),
+            # Add more car makes as needed
+        ],
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+    part_categories = forms.MultipleChoiceField(
+        choices=[
+            ('Any', 'Any'),
+            ('BODY', 'Body'),
+            ('ENGINE', 'Engine'),
+            ('TRANSMISSION', 'Transmission'),
+            ('AC', 'AC'),
+            ('FUEL_SUPPLY', 'Fuel Supply'),
+            ('BRAKE', 'Brake'),
+            ('SUSPENSION', 'Suspension'),
+            ('STEERING', 'Steering'),
+            ('INTERIOR', 'Interior'),
+            ('ELECTRONIC', 'Electronic Components'),
+            ('EXHAUST', 'Exhaust System'),
+            ('WHEELS', 'Wheels'),
+            # Add more categories as needed
+        ],
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+    manufacturing_type = forms.ChoiceField(
+        choices=[
+            ('OEM', 'Original Equipment Manufacturer'),
+            ('AFTERMARKET', 'Aftermarket'),
+            ('REMANUFACTURED', 'Remanufactured'),
+        ],
+        required=False
+    )
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'phone_number', 'user_type', 'password1', 'password2')
+        fields = ('username', 'email', 'password1', 'password2', 'user_type')
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.user_type = self.cleaned_data['user_type']
+        
+        if commit:
+            user.save()
+            if user.user_type == 'COMPANY':
+                Company.objects.create(
+                    user=user,
+                    car_makes=','.join(self.cleaned_data['car_makes']),
+                    part_categories=','.join(self.cleaned_data['part_categories']),
+                    manufacturing_type=self.cleaned_data['manufacturing_type']
+                )
+        return user
 
 class CustomAuthenticationForm(AuthenticationForm):
     class Meta:
         model = User
-
 
 
 

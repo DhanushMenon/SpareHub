@@ -34,6 +34,22 @@
         .pay-button:hover {
             background-color: #e65c3b;
         }
+        .back-button {
+            background-color: #6c757d; /* Bootstrap secondary color */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px; /* Add some space above the button */
+        }
+        .back-button:hover {
+            background-color: #5a6268; /* Darker shade for hover effect */
+        }
+        .button-container {
+            margin-top: 30px; /* Space above the button container */
+        }
     </style>
 </head>
 <body>
@@ -47,6 +63,11 @@
 
         <div class="text-center">
             <button id="pay-button" class="pay-button">Pay Now</button>
+        </div>
+
+        <!-- Back to Browse Button -->
+        <div class="text-center button-container">
+            <a href="{% url 'spares:browse_customer' %}" class="back-button">Back to Browse</a>
         </div>
     </div>
 

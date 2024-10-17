@@ -1,0 +1,3 @@
+# ... other settings ...
+
+AUTH_USER_MODEL = 'spares.User'

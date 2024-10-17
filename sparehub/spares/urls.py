@@ -8,6 +8,7 @@ from django.urls import path
 from . import views  # Import views from the current app
 from .views import login_view, register_view, product_detail, CreateOrderView, PaymentVerificationView, payment_view
 
+
 from django.contrib.auth import views as auth_views
 
 
@@ -50,8 +51,8 @@ urlpatterns = [
 
     path('product/<int:product_id>/', product_detail, name='product_detail'),
 
-    path('payment/', payment_view, name='payment'),
-    path('create-order/', CreateOrderView.as_view(), name='create-order'),
+    path('payment/', payment_view, name='payment_view'),  # Ensure this line exists
+    path('create-order/', CreateOrderView.as_view(), name='create_order'),  # Example for CreateOrderView
     path('verify-payment/', PaymentVerificationView.as_view(), name='verify-payment'),
 
 
@@ -59,4 +60,3 @@ urlpatterns = [
 
 
 ]
-
