@@ -335,16 +335,22 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def view_cart(request):
-    # Get or create a cart for the user
     cart, created = Cart.objects.get_or_create(user=request.user)
     
-    # Get all cart items
-    cart_items = cart.cartitem_set.all()
+    cart_items = cart.cartitem_set.all().select_related('product')
     
-    # Calculate total amount
+    # Update cart items based on current stock
+    for item in cart_items:
+        if item.quantity > item.product.stock_quantity:
+            item.quantity = item.product.stock_quantity
+            item.save()
+    
     total_amount = sum(item.subtotal() for item in cart_items)
     
-    return render(request, 'view_cart.html', {'cart_items': cart_items, 'total_amount': total_amount})
+    return render(request, 'view_cart.html', {
+        'cart_items': cart_items,
+        'total_amount': total_amount
+    })
 
 @login_required
 def remove_from_wishlist(request, product_id):
@@ -626,6 +632,7 @@ def is_company_user(user):
 def company_orders(request):
     orders = Order.objects.filter(company_user=request.user).order_by('-order_date')
     return render(request, 'company_orders.html', {'orders': orders})
+
 
 
 

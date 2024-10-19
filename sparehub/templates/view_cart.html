@@ -102,19 +102,23 @@
                                 <div class="flex-grow-1">
                                     <h5 class="mb-1">{{ item.product.name }}</h5>
                                     <p class="mb-1">Price: ₹{{ item.product.price }}</p>
-                                    <div class="d-flex align-items-center">
-                                        <form method="post" action="{% url 'spares:update_cart_item' item.product.id %}" class="me-2">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="quantity" value="{{ item.quantity|add:-1 }}">
-                                            <button type="submit" class="btn btn-warning btn-sm {% if item.quantity <= 1 %}disabled{% endif %}">-</button>
-                                        </form>
-                                        <span class="me-2">{{ item.quantity }}</span>
-                                        <form method="post" action="{% url 'spares:update_cart_item' item.product.id %}">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="quantity" value="{{ item.quantity|add:1 }}">
-                                            <button type="submit" class="btn btn-success btn-sm">+</button>
-                                        </form>
-                                    </div>
+                                    {% if item.product.stock_quantity > 0 %}
+                                        <div class="d-flex align-items-center">
+                                            <form method="post" action="{% url 'spares:update_cart_item' item.product.id %}" class="me-2">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="quantity" value="{{ item.quantity|add:-1 }}">
+                                                <button type="submit" class="btn btn-warning btn-sm {% if item.quantity <= 1 %}disabled{% endif %}">-</button>
+                                            </form>
+                                            <span class="me-2">{{ item.quantity }}</span>
+                                            <form method="post" action="{% url 'spares:update_cart_item' item.product.id %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="quantity" value="{{ item.quantity|add:1 }}">
+                                                <button type="submit" class="btn btn-success btn-sm {% if item.quantity >= item.product.stock_quantity %}disabled{% endif %}">+</button>
+                                            </form>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-danger fw-bold">Out of Stock</p>
+                                    {% endif %}
                                 </div>
                                 <button type="button" class="btn btn-danger btn-sm remove-from-cart" data-product-id="{{ item.product.id }}">Remove</button>
                             </div>
