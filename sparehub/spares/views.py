@@ -5,13 +5,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Customer,User,Company, Product# Import your Customer model
+from .models import Customer,User,Company, Product, Order, OrderItem # Import your Customer model
 from django.contrib.auth import authenticate, login,logout
 from .forms import CompanyRegistrationForm, CustomerRegistrationForm, CompanyProfileForm, ProductForm, ProductImageFormSet, CustomUserCreationForm, CustomAuthenticationForm
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from .models import Product, Cart, CartItem, Wishlist
+from .models import Product, Cart, CartItem, Wishlist, Order
 from django.urls import reverse
 from django.views.decorators.cache import cache_control
 from django.views.decorators.cache import cache_control
@@ -23,8 +23,12 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from .models import Cart, CartItem
+from django.db import transaction  # Add this import
+from django.db import transaction
+from django.contrib import messages
+import logging
 
-
+logger = logging.getLogger(__name__)
 
 # ... existing views ...
 def home(request):
@@ -133,7 +137,7 @@ def login_view(request):
 @login_required
 def company_dashboard(request):
     products = Product.objects.filter(company=request.user.company).order_by('-id')
-    orders = Order.objects.filter(product__company_user=request.user).distinct().order_by('-order_date')
+    orders = Order.objects.filter(items__product__in=products).distinct()
     
     context = {
         'products': products,
@@ -558,36 +562,58 @@ class PaymentVerificationView(View):
             return JsonResponse({'status': 'failed', 'error': str(e)})
 
 
-
-
-
 @login_required
+@transaction.atomic
 def payment_success(request):
     if request.method == 'POST':
+        razorpay_payment_id = request.POST.get('razorpay_payment_id', '')
+        razorpay_order_id = request.POST.get('razorpay_order_id', '')
+        razorpay_signature = request.POST.get('razorpay_signature', '')
+
+        # Verify the payment signature
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        try:
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': razorpay_payment_id,
+                'razorpay_signature': razorpay_signature
+            })
+        except:
+            # If verification fails, redirect to a failure page
+            return render(request, 'payment_failure.html')
+
+        # Payment verified, now process the order
         cart = Cart.objects.get(user=request.user)
         cart_items = cart.cartitem_set.all()
         
+        # Calculate total amount
+        total_amount = sum(item.product.price * item.quantity for item in cart_items)
+        
+        # Create the order
+        order = Order.objects.create(user=request.user, total_amount=total_amount)
+        
         for cart_item in cart_items:
             product = cart_item.product
-            if product.quantity >= cart_item.quantity:
-                Order.objects.create(
-                    user=request.user,
+            if product.stock_quantity >= cart_item.quantity:
+                OrderItem.objects.create(
+                    order=order,
                     product=product,
                     quantity=cart_item.quantity,
-                    address=request.POST.get('address', ''),
-                    company_user=product.company_user
+                    price=product.price
                 )
-                product.quantity -= cart_item.quantity
+                product.stock_quantity -= cart_item.quantity
                 product.save()
             else:
-                # Handle insufficient stock
-                pass
+                # If stock is insufficient, rollback the transaction
+                transaction.set_rollback(True)
+                return render(request, 'payment_failure.html', {'message': f"Insufficient stock for {product.name}"})
         
         # Clear the cart
         cart.cartitem_set.all().delete()
         
-        return render(request, 'payment_success.html')
-    return redirect('view_cart')
+        return render(request, 'payment_success.html', {'order': order})
+    else:
+        return redirect('spares:view_cart')
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
@@ -600,4 +626,6 @@ def is_company_user(user):
 def company_orders(request):
     orders = Order.objects.filter(company_user=request.user).order_by('-order_date')
     return render(request, 'company_orders.html', {'orders': orders})
+
+
 

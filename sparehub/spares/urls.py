@@ -65,6 +65,8 @@ urlpatterns = [
 
     path('payment-success/', views.payment_success, name='payment_success'),
     path('company-orders/', views.company_orders, name='company_orders'),
+    path('payment/success/', views.payment_success, name='payment_success'),
+
 
 
     path('oauth/', include('social_django.urls', namespace='social')),

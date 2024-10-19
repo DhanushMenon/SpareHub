@@ -119,7 +119,7 @@
                             <tr>
                                 <td>{{ product.name }}</td>
                                 <td>${{ product.price }}</td>
-                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.stock_quantity }}</td>
                                 <td>
                                     <span class="badge bg-{% if product.availability %}success{% else %}danger{% endif %}">
                                         {% if product.availability %}Available{% else %}Not Available{% endif %}

@@ -37,6 +37,9 @@
             opacity: 0.65;
         }
     </style>
+    <!-- Add these in the <head> section -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -113,10 +116,7 @@
                                         </form>
                                     </div>
                                 </div>
-                                <form method="post" action="{% url 'spares:remove_from_cart' item.product.id %}" class="ms-3">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-                                </form>
+                                <button type="button" class="btn btn-danger btn-sm remove-from-cart" data-product-id="{{ item.product.id }}">Remove</button>
                             </div>
                         {% endfor %}
                     </div>
@@ -146,5 +146,46 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('.remove-from-cart').click(function(e) {
+            e.preventDefault();
+            var productId = $(this).data('product-id');
+            var csrftoken = '{{ csrf_token }}';
+            var button = $(this);
+            
+            $.ajax({
+                url: '{% url "spares:remove_from_cart" 0 %}'.replace('0', productId),
+                type: 'POST',
+                headers: {'X-CSRFToken': csrftoken},
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: response.message,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                location.reload();  // Reload the page to reflect changes
+                            }
+                        });
+                        // Update total amount
+                        $('#total-amount').text(response.new_total);
+                        // Remove the item from the cart display
+                        button.closest('.list-group-item').remove();
+                        // Update cart count in navbar if you have one
+                        // $('.cart-count').text
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error', 'There was an error communicating with the server.', 'error');
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>

@@ -34,6 +34,10 @@
         .pay-button:hover {
             background-color: #e65c3b;
         }
+        .pay-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
         .back-button {
             background-color: #6c757d; /* Bootstrap secondary color */
             color: white;
@@ -50,16 +54,59 @@
         .button-container {
             margin-top: 30px; /* Space above the button container */
         }
+        .address-form {
+            margin-top: 30px;
+        }
+        .address-form input,
+        .address-form select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container payment-container">
         <h1 class="text-center">Complete Your Payment</h1>
-        <p class="text-center">Please review your total amount before proceeding.</p>
+        <p class="text-center">Please provide your delivery address and review your total amount before proceeding.</p>
         
         <div class="text-center">
             <p class="total-amount">Total Amount: ₹<span id="total-amount">{{ total_amount }}</span></p>
         </div>
+
+        <form id="address-form" class="address-form">
+            <input type="text" name="full_name" required placeholder="Full Name">
+            <div class="error-message" id="full_name-error">Please enter your full name</div>
+
+            <input type="tel" name="phone_number" required placeholder="Phone Number">
+            <div class="error-message" id="phone_number-error">Please enter a valid phone number</div>
+
+            <input type="text" name="country" required placeholder="Country">
+            <div class="error-message" id="country-error">Please enter your country</div>
+
+            <input type="text" name="state" required placeholder="State">
+            <div class="error-message" id="state-error">Please enter your state</div>
+
+            <input type="text" name="district" required placeholder="District">
+            <div class="error-message" id="district-error">Please enter your district</div>
+
+            <input type="text" name="city" required placeholder="City">
+            <div class="error-message" id="city-error">Please enter your city</div>
+
+            <input type="text" name="street_address" required placeholder="Street Address">
+            <div class="error-message" id="street_address-error">Please enter your street address</div>
+
+            <input type="text" name="pincode" required placeholder="Pincode">
+            <div class="error-message" id="pincode-error">Please enter a valid pincode</div>
+        </form>
 
         <div class="text-center">
             <button id="pay-button" class="pay-button">Pay Now</button>
@@ -71,63 +118,100 @@
         </div>
     </div>
 
-    <form id="address-form">
-        <textarea name="address" required placeholder="Enter your delivery address"></textarea>
-    </form>
-
     <script>
+        function validateForm() {
+            var form = document.getElementById('address-form');
+            var isValid = true;
+
+            // Reset all error messages
+            var errorMessages = document.getElementsByClassName('error-message');
+            for (var i = 0; i < errorMessages.length; i++) {
+                errorMessages[i].style.display = 'none';
+            }
+
+            // Validate each field
+            var fields = ['full_name', 'phone_number', 'country', 'state', 'district', 'city', 'street_address', 'pincode'];
+            fields.forEach(function(field) {
+                var input = form[field];
+                var errorElement = document.getElementById(field + '-error');
+                
+                if (input.value.trim() === '') {
+                    errorElement.style.display = 'block';
+                    isValid = false;
+                } else {
+                    // Additional validations
+                    if (field === 'phone_number') {
+                        if (!/^\d{10}$/.test(input.value)) {
+                            errorElement.textContent = 'Please enter a valid 10-digit phone number';
+                            errorElement.style.display = 'block';
+                            isValid = false;
+                        }
+                    } else if (field === 'pincode') {
+                        if (!/^\d{6}$/.test(input.value)) {
+                            errorElement.textContent = 'Please enter a valid 6-digit pincode';
+                            errorElement.style.display = 'block';
+                            isValid = false;
+                        }
+                    }
+                }
+            });
+
+            return isValid;
+        }
+
         document.getElementById('pay-button').onclick = function() {
-            fetch('/create-order/', {  // Adjust the URL to your CreateOrderView
+            if (!validateForm()) {
+                return;
+            }
+
+            // Collect address data
+            var addressForm = document.getElementById('address-form');
+            var addressData = {
+                full_name: addressForm.full_name.value,
+                phone_number: addressForm.phone_number.value,
+                country: addressForm.country.value,
+                state: addressForm.state.value,
+                district: addressForm.district.value,
+                city: addressForm.city.value,
+                street_address: addressForm.street_address.value,
+                pincode: addressForm.pincode.value
+            };
+
+            fetch('/create-order/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                    'X-CSRFToken': '{{ csrf_token }}'
                 },
                 body: JSON.stringify({
-                    amount: {{ total_amount_in_paise }},  // Use the amount in paise
-                    currency: 'INR'  // Specify the currency
+                    amount: {{ total_amount_in_paise }},
+                    currency: 'INR'
                 })
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                // Handle the response from the server
                 var options = {
-                    "key": "{{ RAZORPAY_KEY_ID }}",  // Your Razorpay Key ID
-                    "amount": data.amount,  // Amount in paise
+                    "key": "{{ razorpay_key_id }}",  // Your Razorpay Key Id
+                    "amount": data.amount,  // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
                     "currency": data.currency,
                     "name": "SpareHub",
-                    "description": "Test Transaction",
-                    "image": "https://example.com/your_logo",  // Your logo URL
+                    "description": "Purchase from SpareHub",
+                    "image": "https://example.com/your_logo.png",
                     "order_id": data.id,  // Order ID created by Razorpay
                     "handler": function (response) {
-                        // Send payment and address info to server
-                        fetch('/payment-success/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token }}'
-                            },
-                            body: JSON.stringify({
-                                payment_id: response.razorpay_payment_id,
-                                address: document.querySelector('textarea[name="address"]').value
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                window.location.href = '/payment-success/';
-                            } else {
-                                alert('Payment failed. Please try again.');
-                            }
-                        });
+                        // On successful payment, submit the form with payment details
+                        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+                        document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                        document.getElementById('payment-form').submit();
+                    },
+                    "prefill": {
+                        "name": "{{ request.user.get_full_name }}",
+                        "email": "{{ request.user.email }}",
+                        "contact": "{{ request.user.phone_number }}"
                     },
                     "theme": {
-                        "color": "#F37254"
+                        "color": "#3399cc"
                     }
                 };
                 var rzp1 = new Razorpay(options);
@@ -138,5 +222,45 @@
             });
         };
     </script>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+    var options = {
+        "key": "{{ razorpay_key_id }}", // Your Razorpay Key Id
+        "amount": "{{ total_amount_in_paise }}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+        "currency": "INR",
+        "name": "SpareHub",
+        "description": "Purchase from SpareHub",
+        "image": "https://example.com/your_logo.png",
+        "handler": function (response){
+            // On successful payment, submit the form with payment details
+            document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+            document.getElementById('razorpay_signature').value = response.razorpay_signature;
+            document.getElementById('payment-form').submit();
+        },
+        "prefill": {
+            "name": "{{ request.user.get_full_name }}",
+            "email": "{{ request.user.email }}",
+            "contact": "{{ request.user.phone_number }}"
+        },
+        "theme": {
+            "color": "#3399cc"
+        }
+    };
+    var rzp1 = new Razorpay(options);
+    document.getElementById('rzp-button1').onclick = function(e){
+        rzp1.open();
+        e.preventDefault();
+    }
+    </script>
+
+    <form id="payment-form" action="{% url 'spares:payment_success' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+    </form>
+
 </body>
 </html>
