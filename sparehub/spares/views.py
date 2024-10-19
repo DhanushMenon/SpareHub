@@ -276,6 +276,10 @@ def browse_customer(request):
     if car_make_filter and car_make_filter != "ANY":
         products = products.filter(car_makes=car_make_filter)  # Assuming you have a car_make field in your Product model
 
+    # Add stock information to each product
+    for product in products:
+        product.in_stock = product.stock_quantity > 0
+
     return render(request, 'browse_customer.html', {'products': products})
 
 from django.http import JsonResponse
@@ -487,6 +491,7 @@ def category_products(request, category):
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    product.in_stock = product.stock_quantity > 0
     return render(request, 'product_detail.html', {
         'product': product
     })

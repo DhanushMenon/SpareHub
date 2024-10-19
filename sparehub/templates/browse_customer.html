@@ -168,7 +168,11 @@
                                     <p class="card-text"><strong>Price: ₹{{ product.price }}</strong></p>
                                 </div>
                                 <div class="card-footer d-flex justify-content-between align-items-center">
-                                    <button class="btn btn-primary btn-sm add-to-cart" data-product-id="{{ product.id }}">Add to Cart</button>
+                                    {% if product.in_stock %}
+                                        <button class="btn btn-primary btn-sm add-to-cart" data-product-id="{{ product.id }}">Add to Cart</button>
+                                    {% else %}
+                                        <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
+                                    {% endif %}
                                     <button class="btn btn-outline-secondary btn-sm add-to-wishlist" data-product-id="{{ product.id }}">
                                         <i class="far fa-heart"></i> Wishlist
                                     </button>

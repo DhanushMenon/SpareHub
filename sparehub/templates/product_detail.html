@@ -85,7 +85,11 @@
                 <p><strong>Price: ${{ product.price }}</strong></p>
                 <p><strong>Warranty Period: {{ product.warranty }} months</strong></p>
                 <p>Stock: <span id="stock-{{ product.id }}">{{ product.stock_quantity }}</span></p>
-                <button class="btn btn-primary add-to-cart" data-product-id="{{ product.id }}">Add to Cart</button>
+                {% if product.in_stock %}
+                    <button class="btn btn-primary add-to-cart" data-product-id="{{ product.id }}">Add to Cart</button>
+                {% else %}
+                    <button class="btn btn-secondary" disabled>Out of Stock</button>
+                {% endif %}
                 <button class="btn btn-outline-secondary add-to-wishlist" data-product-id="{{ product.id }}">
                     <i class="far fa-heart"></i> Wishlist
                 </button>
@@ -130,6 +134,10 @@
                             alert('Product added to cart!');
                             // Update stock quantity
                             stockElement.text(response.new_stock);
+                            // Disable the button if stock becomes 0
+                            if (response.new_stock == 0) {
+                                $('.add-to-cart').prop('disabled', true).text('Out of Stock').removeClass('btn-primary').addClass('btn-secondary');
+                            }
                         } else {
                             alert(response.message);
                         }
