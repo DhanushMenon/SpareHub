@@ -6,7 +6,7 @@ from spares import views as spares_views
 
 from django.urls import path
 from . import views  # Import views from the current app
-from .views import login_view, register_view, product_detail, CreateOrderView, PaymentVerificationView, payment_view
+from .views import login_view, register_view, product_detail, CreateOrderView, PaymentVerificationView, payment_view, company_orders
 
 
 from django.contrib.auth import views as auth_views
@@ -64,7 +64,7 @@ urlpatterns = [
 
 
     path('payment-success/', views.payment_success, name='payment_success'),
-    path('company-orders/', views.company_orders, name='company_orders'),
+    path('company-orders/', company_orders, name='company_orders'),
     path('payment/success/', views.payment_success, name='payment_success'),
 
 

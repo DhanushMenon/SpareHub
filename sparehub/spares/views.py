@@ -27,6 +27,12 @@ from django.db import transaction  # Add this import
 from django.db import transaction
 from django.contrib import messages
 import logging
+from django.contrib.auth import get_user_model
+
+
+
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -403,7 +409,6 @@ import random
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse
 from .forms import ForgotPasswordForm, OTPVerificationForm, PasswordResetForm
@@ -418,7 +423,7 @@ def forgot_password(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             try:
-                user = User.objects.get(email=email)
+                user = User.objects.get(email=email)  # Use your custom User model
                 otp = random.randint(100000, 999999)
                 otp_storage[email] = otp
                 
@@ -437,7 +442,6 @@ def forgot_password(request):
     else:
         form = ForgotPasswordForm()
 
-    # Update the template path
     return render(request, 'forgot_password/forgot_password.html', {'form': form})
 
 def verify_otp(request):
@@ -630,13 +634,23 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
 from .models import Order
 
-def is_company_user(user):
-    return user.is_authenticated and user.is_staff
 
-@user_passes_test(is_company_user)
 def company_orders(request):
-    orders = Order.objects.filter(company_user=request.user).order_by('-order_date')
-    return render(request, 'company_orders.html', {'orders': orders})
+    # Get the orders for the products associated with the logged-in user's company
+    orders = Order.objects.filter(items__product__company=request.user.company).distinct().order_by('-created_at')
+
+    # Prepare a list to hold order details
+    order_details = []
+    for order in orders:
+        order_items = OrderItem.objects.filter(order=order)
+        order_info = {
+            'order': order,
+            'items': order_items
+        }
+        order_details.append(order_info)
+
+    return render(request, 'company_orders.html', {'order_details': order_details})
+
 
 
 

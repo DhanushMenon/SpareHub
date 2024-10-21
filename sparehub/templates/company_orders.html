@@ -1,4 +1,3 @@
-<!-- company_orders.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,15 +32,17 @@
                 </tr>
             </thead>
             <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>{{ order.id }}</td>
-                    <td>{{ order.user.username }}</td>
-                    <td>{{ order.product.name }}</td>
-                    <td>{{ order.quantity }}</td>
-                    <td>{{ order.order_date|date:"Y-m-d H:i" }}</td>
-                    <td>{{ order.address }}</td>
-                </tr>
+                {% for order_info in order_details %}
+                    {% for item in order_info.items %}
+                    <tr>
+                        <td>{{ order_info.order.id }}</td>
+                        <td>{{ order_info.order.user.username }}</td>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ order_info.order.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ order_info.order.user.customer.address }}</td>  <!-- Assuming you have a related Customer model -->
+                    </tr>
+                    {% endfor %}
                 {% empty %}
                 <tr>
                     <td colspan="6" class="text-center">No orders found.</td>

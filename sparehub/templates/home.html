@@ -6,69 +6,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SpareHub - Car Spare Parts</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
         .navbar {
-            background-color: #343a40; /* Dark background color */
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .navbar .nav-link {
-            color: #ffffff; /* White text for links */
+            color: white !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .navbar .nav-link:hover {
+            color: #ecf0f1 !important;
+            transform: translateY(-2px);
         }
         .btn-register {
-            background-color: #ffc107; /* Yellow background for register button */
-            color: #000; /* Black text for register button */
+            background-color: #e74c3c;
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-register:hover {
+            background-color: #c0392b;
+            transform: scale(1.05);
         }
         .carousel-item {
-            height: 600px;
+            height: 70vh;
         }
         .carousel-item img {
             object-fit: cover;
-            height: 150vh;
+            filter: brightness(0.7);
         }
-
-
+        .carousel-caption {
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 20px;
+        }
         .category-nav {
-            background-color: #007bff; /* Change this to your desired color */
-            padding: 10px 0;
+            background-color: var(--secondary-color);
+            padding: 15px 0;
         }
         .category-nav .nav-link {
-            color: white; /* Change text color to white for better contrast */
-            display: flex; /* Use flexbox for alignment */
-            align-items: center; /* Center items vertically */
-            justify-content: center; /* Center items horizontally */
-            flex-direction: column; /* Stack icon and text */
-        }
-        .category-nav .nav-link i {
-            font-size: 24px; /* Adjust icon size */
-            margin-bottom: 5px; /* Space between icon and text */
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
         .category-nav .nav-link:hover {
-            color: #f8f9fa; /* Change hover color */
+            transform: translateY(-3px);
+            color: var(--primary-color);
         }
-
-        .categories {
-            padding: 20px 0;
-            text-align: center;
+        .featured-categories {
+            background-color: #f8f9fa;
         }
-
-        .category-item {
-            margin: 10px;
-            text-align: center;
+        .category-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        .category-item i {
-            font-size: 2rem;
-            display: block;
-            margin-bottom: 5px;
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .why-choose-us {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .why-choose-us .card {
+            background-color: rgba(255,255,255,0.1);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .why-choose-us .card:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255,255,255,0.2);
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #343a40;"> <!-- Dark background color -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{% url 'spares:home' %}">
-                <img src="{% static 'images/logo.png' %}" alt="SpareHub Logo" height="30">
+                <img src="{% static 'images/logo.png' %}" alt="SpareHub Logo" height="30" class="d-inline-block align-top">
+                SpareHub
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -76,53 +107,33 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'spares:login_user' %}" style="color: #ffffff;">Login</a> <!-- White text -->
+                        <a class="nav-link" href="{% url 'spares:login_user' %}">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-register" href="{% url 'spares:register_user' %}" style="background-color: #ffc107; color: #000;">Register</a> <!-- Register button -->
+                        <a class="nav-link btn btn-register" href="{% url 'spares:register_user' %}">Register</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- New Category Navigation Bar -->
-<!-- New Category Navigation Bar -->
-     <!-- Categories Section -->
-     <div class="categories bg-light">
+    <div class="category-nav">
         <div class="container">
-            <div class="row">
-                <div class="col category-item">
-                    <i class="bi bi-brake"></i>
-                    <a href="#" class="nav-link">Brakes</a>
+            <div class="row justify-content-center">
+                <div class="col-auto">
+                    <a href="#" class="nav-link"><i class="bi bi-brake me-2"></i>Brakes</a>
                 </div>
-                <div class="col category-item">
-                    <i class="bi bi-engine"></i>
-                    <a href="#" class="nav-link">Engine</a>
+                <div class="col-auto">
+                    <a href="#" class="nav-link"><i class="bi bi-engine me-2"></i>Engine</a>
                 </div>
-                <div class="col category-item">
-                    <i class="bi bi-lightning"></i>
-                    <a href="#" class="nav-link">Electrical</a>
+                <div class="col-auto">
+                    <a href="#" class="nav-link"><i class="bi bi-lightning me-2"></i>Electrical</a>
                 </div>
-                <div class="col category-item">
-                    <i class="bi bi-car-front"></i>
-                    <a href="#" class="nav-link">Body</a>
+                <div class="col-auto">
+                    <a href="#" class="nav-link"><i class="bi bi-car-front me-2"></i>Body</a>
                 </div>
-                <div class="col category-item">
-                    <i class="bi bi-gear"></i>
-                    <a href="#" class="nav-link">Transmission</a>
-                </div>
-                <div class="col category-item">
-                    <i class="bi bi-wind"></i>
-                    <a href="#" class="nav-link">AC</a>
-                </div>
-                <div class="col category-item">
-                    <i class="bi bi-car-suspension"></i>
-                    <a href="#" class="nav-link">Suspension</a>
-                </div>
-                <div class="col category-item">
-                    <i class="bi bi-steering-wheel"></i>
-                    <a href="#" class="nav-link">Steering</a>
+                <div class="col-auto">
+                    <a href="#" class="nav-link"><i class="bi bi-gear me-2"></i>Transmission</a>
                 </div>
             </div>
         </div>
@@ -154,6 +165,7 @@
                     </div>
                 </div>
             </div>
+
             <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Previous</span>
@@ -210,43 +222,26 @@
             </div>
         </section>
 
-        <section class="why-choose-us py-5 bg-light">
+        <section class="why-choose-us py-5">
             <div class="container">
-                <h2 class="text-center mb-4">Why Choose SpareHub?</h2>
+                <h2 class="text-center mb-4 text-3xl font-bold">Why Choose SpareHub?</h2>
                 <div class="row">
                     <div class="col-md-4 mb-4">
                         <div class="card h-100 text-center">
                             <div class="card-body">
-                                <i class="fas fa-check-circle fa-3x mb-3 text-primary"></i>
+                                <i class="fas fa-check-circle fa-3x mb-3"></i>
                                 <h3 class="card-title">Genuine Parts</h3>
                                 <p class="card-text">All our parts are genuine and sourced directly from manufacturers.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100 text-center">
-                            <div class="card-body">
-                                <i class="fas fa-truck fa-3x mb-3 text-primary"></i>
-                                <h3 class="card-title">Fast Delivery</h3>
-                                <p class="card-text">We offer quick and reliable delivery to your doorstep.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100 text-center">
-                            <div class="card-body">
-                                <i class="fas fa-headset fa-3x mb-3 text-primary"></i>
-                                <h3 class="card-title">Expert Support</h3>
-                                <p class="card-text">Our team of experts is always ready to assist you.</p>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Add more "Why Choose Us" cards here -->
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="bg-dark text-white py-4">
+    <footer class="bg-dark text-white py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-4">
