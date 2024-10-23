@@ -4,33 +4,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify OTP</title>
+    <title>Verify OTP - SpareHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: #3498db;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .navbar .nav-link {
+            color: white !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .navbar .nav-link:hover {
+            color: #ecf0f1 !important;
+            transform: translateY(-2px);
+        }
+
+        .verify-otp-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #f4f7f9;
+        }
+
+        .verify-otp-box {
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .verify-otp-box h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        footer {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Verify OTP</h2>
-        <p>An OTP has been sent to your email. Please enter the OTP below to proceed.</p>
-
-        <form method="POST">
-            {% csrf_token %}
-            {{ form.non_field_errors }}
-            
-            <input type="hidden" name="email" value="{{ form.email.value }}">
-            
-            <div class="form-group">
-                {{ form.otp.label_tag }}
-                <input type="number" name="otp" pattern="\d{6}" required title="Enter a 6-digit OTP" class="form-control" min="100000" max="999999" placeholder="Enter OTP" />
-                {{ form.otp.errors }}
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'spares:home' %}">SpareHub</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'spares:home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'spares:login_user' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'spares:register_user' %}">Register</a>
+                    </li>
+                </ul>
             </div>
+        </div>
+    </nav>
 
-            <button type="submit" class="btn btn-primary">Verify OTP</button>
-        </form>
+    <!-- OTP Verification Box -->
+    <div class="verify-otp-container">
+        <div class="verify-otp-box">
+            <h2>Verify OTP</h2>
+            <p>An OTP has been sent to your email. Please enter the OTP below to proceed.</p>
 
-        <script>
-            // Additional JS validation for OTP if needed
-        </script>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                <input type="hidden" name="email" value="{{ form.email.value }}">
+
+                <div class="form-group">
+                    {{ form.otp.label_tag }}
+                    <input type="number" name="otp" pattern="\d{6}" required title="Enter a 6-digit OTP" class="form-control" min="100000" max="999999" placeholder="Enter OTP" />
+                    {{ form.otp.errors }}
+                </div>
+
+                <button type="submit" class="btn btn-primary">Verify OTP</button>
+            </form>
+        </div>
     </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 SpareHub. All Rights Reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
