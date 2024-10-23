@@ -42,7 +42,7 @@ urlpatterns = [
     path('update-cart-item/<int:product_id>/', views.update_cart_item, name='update_cart_item'),
 
     path('forgot-password/', views.forgot_password, name='forgot_password'),
-    path('verify-otp/', views.verify_otp, name='verify_otp'),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),  # Ensure this line exists
     path('reset-password/', views.reset_password, name='reset_password'),
 
 

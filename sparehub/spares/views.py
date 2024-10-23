@@ -118,24 +118,24 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            if user.is_staff:  # Admin user
+            login(request, user)
+            if user.is_staff:
                 login(request, user)
-                return redirect('spares:admin_dashboard')  # Redirect to admin dashboard
-
+                return redirect('spares:admin_dashboard')
             if user.user_type == 'COMPANY':
                 if not user.company.is_approved:
                     messages.error(request, 'Your company registration is pending approval.')
+                    login(request, user)
                     return render(request, 'login_user.html')
-
-                login(request, user)
-                return redirect('spares:company_dashboard')  # Redirect to company dashboard
-
+                return redirect('spares:company_dashboard')
             if user.user_type == 'CUSTOMER':
                 login(request, user)
-                return redirect('spares:browse_customer')  # Redirect to customer browsing page
-
+                return redirect('spares:browse_customer')
         else:
-            messages.error(request, 'Invalid username or password.')
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'Incorrect password. Please try again.')
+            else:
+                messages.error(request, 'Username not found. Please check your username.')
 
     return render(request, 'login_user.html')
 
@@ -415,7 +415,6 @@ from .forms import ForgotPasswordForm, OTPVerificationForm, PasswordResetForm
 
 # Simulate OTP storage (In production, use a model or cache)
 otp_storage = {}
-
 # Forgot Password View
 def forgot_password(request):
     if request.method == 'POST':
@@ -423,7 +422,7 @@ def forgot_password(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             try:
-                user = User.objects.get(email=email)  # Use your custom User model
+                user = User.objects.get(email=email)
                 otp = random.randint(100000, 999999)
                 otp_storage[email] = otp
                 
@@ -435,8 +434,7 @@ def forgot_password(request):
                     [email],
                     fail_silently=False,
                 )
-                messages.success(request, 'OTP has been sent to your email.')
-                return redirect(reverse('verify_otp') + f'?email={email}')
+                return redirect(reverse('spares:verify_otp') + f'?email={email}&sent_otp=1')  # Add a query parameter to indicate success
             except User.DoesNotExist:
                 form.add_error('email', 'Email address not found.')
     else:
@@ -444,6 +442,7 @@ def forgot_password(request):
 
     return render(request, 'forgot_password/forgot_password.html', {'form': form})
 
+# Verify OTP
 def verify_otp(request):
     if request.method == 'POST':
         form = OTPVerificationForm(request.POST)
@@ -453,16 +452,16 @@ def verify_otp(request):
 
             if email in otp_storage and otp_storage[email] == entered_otp:
                 del otp_storage[email]
-                messages.success(request, 'OTP verified! You can now reset your password.')
-                return redirect(reverse('reset_password') + f'?email={email}')
+                return redirect(reverse('spares:reset_password') + f'?email={email}&verified_otp=1')  # Success indicator
             else:
-                messages.error(request, 'Invalid OTP.')
+                form.add_error('otp', 'Invalid OTP.')  # Show error in the form
     else:
         email = request.GET.get('email')
         form = OTPVerificationForm(initial={'email': email})
 
     return render(request, 'forgot_password/verify_otp.html', {'form': form})
 
+# Reset Password
 def reset_password(request):
     email = request.GET.get('email')
 
@@ -474,15 +473,13 @@ def reset_password(request):
                 user = User.objects.get(email=email)
                 user.set_password(new_password)
                 user.save()
-                messages.success(request, 'Password has been reset successfully! You can now log in.')
-                return redirect('login')
+                return redirect('spares:login_user')  # Redirect after successful password reset
             except User.DoesNotExist:
-                messages.error(request, 'User not found.')
+                form.add_error(None, 'User not found.')
     else:
         form = PasswordResetForm()
 
     return render(request, 'forgot_password/reset_password.html', {'form': form})
-
 
 
 
@@ -636,20 +633,13 @@ from .models import Order
 
 
 def company_orders(request):
-    # Get the orders for the products associated with the logged-in user's company
-    orders = Order.objects.filter(items__product__company=request.user.company).distinct().order_by('-created_at')
+    # Assuming the user is a company user and has a related Company model
+    orders = Order.objects.filter(product__company=request.user.company).order_by('-order_date')
+    return render(request, 'company_orders.html', {'orders': orders})
 
-    # Prepare a list to hold order details
-    order_details = []
-    for order in orders:
-        order_items = OrderItem.objects.filter(order=order)
-        order_info = {
-            'order': order,
-            'items': order_items
-        }
-        order_details.append(order_info)
 
-    return render(request, 'company_orders.html', {'order_details': order_details})
+
+
 
 
 

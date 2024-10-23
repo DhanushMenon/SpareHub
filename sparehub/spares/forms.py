@@ -182,14 +182,13 @@ class OTPVerificationForm(forms.Form):
 
 # Password Reset Form
 class PasswordResetForm(forms.Form):
-    new_password = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 8}), label='New Password')
-    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 8}), label='Confirm Password')
+    new_password = forms.CharField(widget=forms.PasswordInput, label='New Password')
+    confirm_password = forms.CharField(widget=forms.PasswordInput, label='Confirm Password')
 
-    # Validate that the two password fields match
     def clean(self):
         cleaned_data = super().clean()
-        new_password = cleaned_data.get('new_password')
-        confirm_password = cleaned_data.get('confirm_password')
+        new_password = cleaned_data.get("new_password")
+        confirm_password = cleaned_data.get("confirm_password")
 
         if new_password and confirm_password and new_password != confirm_password:
-            raise forms.ValidationError("Passwords do not match")
+            raise forms.ValidationError("Passwords do not match.")

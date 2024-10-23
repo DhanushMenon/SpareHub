@@ -6,86 +6,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Browse Products - SpareHub</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        /* Custom Styling */
+        :root {
+            --primary-blue: #1e40af;
+            --secondary-blue: #3b82f6;
+            --light-blue: #93c5fd;
+        }
         body {
-            background-color: #f4f4f4;
+            background-color: #f0f9ff;
+            font-family: 'Roboto', sans-serif;
         }
-
         .navbar {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: var(--primary-blue);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .navbar-brand, .nav-link, .navbar-nav .nav-link.active {
+            color: white !important;
+        }
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.85)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        .filter-box {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        .filter-box {
-            background-color: #fff;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            margin-bottom: 20px;
+        .filter-box:hover {
+            transition: all 0.8s ease;
+
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
         }
 
         .product-card {
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.8s ease;
             border: none;
-            border-radius: 10px;
+            border-radius: 0.5rem;
+            overflow: hidden;
         }
-
         .product-card:hover {
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-
-        .card-footer {
-            background-color: #f9f9f9;
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
         }
-
+        .btn-primary {
+            background-color: var(--secondary-blue);
+            border-color: var(--secondary-blue);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+        .btn-outline-secondary {
+            color: var(--secondary-blue);
+            border-color: var(--secondary-blue);
+        }
+        .btn-outline-secondary:hover {
+            background-color: var(--secondary-blue);
+            color: white;
+        }
         footer {
-            margin-top: 40px;
-            background-color: #333;
-            color: #fff;
+            background-color: var(--primary-blue);
+            color: white;
         }
-
         footer a {
-            color: #bbb;
-            text-decoration: none;
+            color: var(--light-blue);
         }
-
         footer a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+        .add-to-cart:hover,
+        .add-to-wishlist:hover {
+            background-color: #264653;
             color: #fff;
         }
     </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen">
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <!-- Brand -->
-            <a class="navbar-brand" href="{% url 'spares:browse_customer' %}">SpareHub</a>
-    
-            <!-- Toggler button for mobile view -->
+            <a class="navbar-brand font-bold text-xl" href="{% url 'spares:browse_customer' %}">SpareHub</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-    
-            <!-- Navigation links and search form -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Left-aligned navigation -->
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'spares:browse_customer' %}">Home</a>
+                        <a class="nav-link active" href="{% url 'spares:browse_customer' %}">Home</a>
                     </li>
                 </ul>
-    
-                <!-- Center-aligned search form -->
                 <form class="d-flex mx-auto" method="GET" action="{% url 'spares:browse_customer' %}">
                     <input class="form-control me-2" type="search" placeholder="Search products" aria-label="Search" name="search" value="{{ request.GET.search }}">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
+                    <button class="btn btn-outline-light" type="submit">Search</button>
                 </form>
-    
-                <!-- Right-aligned user actions (wishlist, cart, profile) -->
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'spares:view_wishlist' %}">
@@ -101,7 +124,7 @@
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user"></i> {{ request.user.username }}
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="#">Profile</a></li>
                             <li><a class="dropdown-item" href="#">Orders</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -117,19 +140,18 @@
             </div>
         </div>
     </nav>
-    
 
-    <main class="container my-4">
-        <h1 class="mb-4 text-center">Browse Products</h1>
+    <main class="container my-4 flex-grow">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Browse Products</h1>
 
-        <div class="filter-box">
-            <form class="row g-3" method="GET" action="{% url 'spares:browse_customer' %}">
-                <div class="col-md-4">
-                    <label for="search" class="form-label">Search by Name</label>
+        <div class="filter-box p-4 mb-6">
+            <form class="grid grid-cols-1 md:grid-cols-4 gap-4" method="GET" action="{% url 'spares:browse_customer' %}">
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search by Name</label>
                     <input class="form-control" type="text" placeholder="Search by name" name="search" value="{{ request.GET.search }}">
                 </div>
-                <div class="col-md-4">
-                    <label for="category" class="form-label">Category</label>
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                     <select class="form-select" name="category">
                         <option value="">Select Category</option>
                         <option value="ANY" {% if request.GET.category == 'ANY' %}selected{% endif %}>Any</option>
@@ -137,62 +159,63 @@
                         <option value="ENGINE" {% if request.GET.category == 'ENGINE' %}selected{% endif %}>Engine</option>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label for="car_make" class="form-label">Car Make</label>
+                <div>
+                    <label for="car_make" class="block text-sm font-medium text-gray-700 mb-1">Car Make</label>
                     <select class="form-select" name="car_make">
                         <option value="">Select Car Make</option>
                         <option value="ANY" {% if request.GET.car_make == 'ANY' %}selected{% endif %}>Any</option>
                         <option value="TOYOTA" {% if request.GET.car_make == 'TOYOTA' %}selected{% endif %}>Toyota</option>
                     </select>
                 </div>
-                <div class="col-md-12 text-center">
-                    <button class="btn btn-primary mt-3" type="submit">Search</button>
+                <div class="flex items-end">
+                    <button class="btn btn-primary w-full" type="submit">Search</button>
                 </div>
             </form>
         </div>
 
-        <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% if products %}
                 {% for product in products %}
-                    <div class="col">
-                        <a href="{% url 'spares:product_detail' product.id %}" class="text-decoration-none">
-                            <div class="card h-100 product-card">
-                                {% if product.images.first %}
-                                    <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                                {% else %}
-                                    <img src="{% static 'images/default_product.png' %}" class="card-img-top" alt="{{ product.name }}">
-                                {% endif %}
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ product.name }}</h5>
-                                    <p class="card-text">{{ product.description|truncatewords:20 }}</p>
-                                    <p class="card-text"><strong>Price: ₹{{ product.price }}</strong></p>
-                                </div>
-                                <div class="card-footer d-flex justify-content-between align-items-center">
-                                    {% if product.in_stock %}
-                                        <button class="btn btn-primary btn-sm add-to-cart" data-product-id="{{ product.id }}">Add to Cart</button>
-                                    {% else %}
-                                        <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
-                                    {% endif %}
-                                    <button class="btn btn-outline-secondary btn-sm add-to-wishlist" data-product-id="{{ product.id }}">
-                                        <i class="far fa-heart"></i> Wishlist
-                                    </button>
-                                </div>
+                    <div class="product-card bg-white rounded-lg overflow-hidden shadow-lg">
+                        <a href="{% url 'spares:product_detail' product.id %}" class="block">
+                            {% if product.images.first %}
+                                <img src="{{ product.images.first.image.url }}" class="w-full h-50 object-scale-down" alt="{{ product.name }}">
+                            {% else %}
+                                <img src="{% static 'images/default_product.png' %}" class="w-full h-50 object-scale-down" alt="{{ product.name }}">
+                            {% endif %}
+                            <div class="p-4">
+                                <h5 class="text-xl font-semibold mb-2">{{ product.name }}</h5>
+                                <p class="text-gray-600 mb-4">{{ product.description|truncatewords:20 }}</p>
+                                <p class="text-lg font-bold text-blue-600">₹{{ product.price }}</p>
                             </div>
                         </a>
+                        <div class="px-4 py-3 bg-gray-50 flex justify-between items-center">
+                            {% if product.in_stock %}
+                                <button class="btn btn-primary btn-sm add-to-cart" data-product-id="{{ product.id }}">Add to Cart</button>
+                            {% else %}
+                                <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
+                            {% endif %}
+                            <button class="btn btn-outline-secondary btn-sm add-to-wishlist" data-product-id="{{ product.id }}">
+                                <i class="far fa-heart"></i> Wishlist
+                            </button>
+                        </div>
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="col-12">
-                    <p class="text-center">No products available at the moment.</p>
+                <div class="col-span-full text-center text-gray-500">
+                    <p>No products available at the moment.</p>
                 </div>
             {% endif %}
         </div>
     </main>
 
-    <footer class="py-4">
+    <footer class="py-6 mt-8">
         <div class="container text-center">
-            <p>&copy; 2024 SpareHub. All Rights Reserved.</p>
-            <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+            <p class="mb-2">&copy; 2024 SpareHub. All Rights Reserved.</p>
+            <div>
+                <a href="#" class="hover:underline mr-4">Privacy Policy</a>
+                <a href="#" class="hover:underline">Terms of Service</a>
+            </div>
         </div>
     </footer>
 
@@ -202,7 +225,8 @@
     <script>
         $(document).ready(function() {
             $('.add-to-cart').click(function(e) {
-                e.preventDefault(); // Prevent default action
+                e.preventDefault();
+                e.stopPropagation();
                 var productId = $(this).data('product-id');
                 $.ajax({
                     url: '{% url "spares:add_to_cart" 0 %}'.replace('0', productId),
@@ -210,19 +234,36 @@
                     headers: {'X-CSRFToken': '{{ csrf_token }}'},
                     success: function(response) {
                         if (response.success) {
-                            alert('Product added to cart successfully!');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Added to Cart',
+                                text: 'Product added to cart successfully!',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
                         } else {
-                            alert('Product is already in the cart.');
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Already in Cart',
+                                text: 'Product is already in the cart.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
                         }
                     },
                     error: function() {
-                        alert('Error adding product to cart.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Error adding product to cart.',
+                        });
                     }
                 });
             });
 
             $('.add-to-wishlist').click(function(e) {
-                e.preventDefault(); // Prevent default action
+                e.preventDefault();
+                e.stopPropagation();
                 var productId = $(this).data('product-id');
                 $.ajax({
                     url: '{% url "spares:add_to_wishlist" 0 %}'.replace('0', productId),
@@ -230,18 +271,36 @@
                     headers: {'X-CSRFToken': '{{ csrf_token }}'},
                     success: function(response) {
                         if (response.success) {
-                            alert('Product added to wishlist successfully!');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Added to Wishlist',
+                                text: 'Product added to wishlist successfully!',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
                         } else {
-                            alert('Product is already in the wishlist.');
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Already in Wishlist',
+                                text: 'Product is already in the wishlist.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
                         }
                     },
                     error: function() {
-                        alert('Error adding product to wishlist.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Error adding product to wishlist.',
+                        });
                     }
                 });
             });
         });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>
 </html>

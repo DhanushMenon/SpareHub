@@ -11,6 +11,13 @@
     <style>
         body {
             background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .navbar {
+            background-color: #007bff;
+        }
+        .navbar-brand img {
+            height: 40px;
         }
         .form-container {
             background-color: white;
@@ -21,6 +28,46 @@
             max-width: 700px;
             margin-left: auto;
             margin-right: auto;
+            transition: transform 0.3s;
+        }
+        .form-container:hover {
+            transform: scale(1.02);
+        }
+        h2 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        h3 {
+            color: #343a40;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .image-form {
+            border: 1px dashed #007bff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            background-color: #f1f1f1;
+        }
+        .nav-link {
+            color: white !important;
+        }
+        .nav-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -28,7 +75,7 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand" href="{% url 'spares:home' %}">
-                <img src="{% static 'images/logo.png' %}" alt="SpareHub Logo" height="40">
+                <img src="{% static 'images/logo.png' %}" alt="SpareHub Logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -61,14 +108,18 @@
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <h3>Product Details</h3>
-                {{ form.as_p }}
+                <div class="row">
+                    {{ form.as_p|safe }}
+                </div>
 
                 <h3>Product Images</h3>
                 {{ formset.management_form }}
                 <div id="image-formset">
                     {% for image_form in formset %}
                         <div class="image-form">
-                            {{ image_form.as_p }}
+                            <div class="row">
+                                {{ image_form.as_p|safe }}
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -81,7 +132,9 @@
 
     <div id="empty-form" class="d-none">
         <div class="image-form">
-            {{ formset.empty_form.as_p }}
+            <div class="row">
+                {{ formset.empty_form.as_p|safe }}
+            </div>
         </div>
     </div>
 
