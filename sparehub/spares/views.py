@@ -647,9 +647,26 @@ from .models import Order
 
 
 def company_orders(request):
-    # Assuming the user is a company user and has a related Company model
-    orders = Order.objects.filter(product__company=request.user.company).order_by('-order_date')
-    return render(request, 'company_orders.html', {'orders': orders})
+    # Get all products of the company
+    company_products = Product.objects.filter(company=request.user.company)
+    
+    # Get all order items for these products
+    order_items = OrderItem.objects.filter(product__in=company_products).select_related('order', 'product')
+    
+    # Group order items by order
+    order_details = {}
+    for item in order_items:
+        if item.order.id not in order_details:
+            order_details[item.order.id] = {
+                'order': item.order,
+                'items': []
+            }
+        order_details[item.order.id]['items'].append(item)
+    
+    context = {
+        'order_details': order_details.values()
+    }
+    return render(request, 'company_orders.html', context)
 
 
 
@@ -661,3 +678,18 @@ def company_orders(request):
 
 
 
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Order
+
+@login_required
+def completed_orders(request):
+    # Fetch orders for the logged-in user
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    
+    context = {
+        'orders': orders
+    }
+    return render(request, 'completed_orders.html', context)

@@ -73,4 +73,5 @@ urlpatterns = [
     path('complete/<backend>/', csrf_exempt(social_views.complete), name='social:complete'),
 
 
+    path('completed-orders/', views.completed_orders, name='completed_orders'),
 ]

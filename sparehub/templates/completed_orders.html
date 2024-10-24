@@ -28,22 +28,30 @@
 <body>
     <div class="container orders-container">
         <h1 class="text-center mb-4">My Completed Orders</h1>
-        {% for order in orders %}
-            <div class="order-item">
-                <h2>Order #{{ order.id }}</h2>
-                <p><strong>Date:</strong> {{ order.created_at }}</p>
-                <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
-                <h3>Items:</h3>
-                <ul>
-                    {% for item in order.items.all %}
-                        <li>{{ item.product.name }} - Quantity: {{ item.quantity }} - Price: ₹{{ item.price }}</li>
+        {% if orders %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>₹{{ order.total_amount }}</td>
+                        <td>{{ order.get_status_display }}</td>
+                    </tr>
                     {% endfor %}
-                </ul>
-                <p><strong>Delivery Address:</strong> {{ order.address.full_name }}, {{ order.address.street_address }}, {{ order.address.city }}, {{ order.address.state }}, {{ order.address.country }}, {{ order.address.pincode }}</p>
-            </div>
-        {% empty %}
+                </tbody>
+            </table>
+        {% else %}
             <p>You have no completed orders.</p>
-        {% endfor %}
+        {% endif %}
         <div class="text-center mt-4">
             <a href="{% url 'spares:browse_customer' %}" class="btn btn-primary">Back to Browse</a>
         </div>

@@ -40,7 +40,7 @@
                         <td>{{ item.product.name }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>{{ order_info.order.created_at|date:"Y-m-d H:i" }}</td>
-                        <td>{{ order_info.order.user.customer.address }}</td>  <!-- Assuming you have a related Customer model -->
+                        <td>{{ order_info.order.user.customer.address }}</td>
                     </tr>
                     {% endfor %}
                 {% empty %}
