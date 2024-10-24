@@ -374,27 +374,41 @@ def remove_from_wishlist(request, product_id):
 
 @login_required
 def remove_from_cart(request, product_id):
-    cart = get_object_or_404(Cart, user=request.user)
-    cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
-    cart_item.delete()
-    return redirect('spares:view_cart')
+    if request.method == 'POST':
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+            cart_item.delete()
+            return JsonResponse({'success': True, 'message': 'Item removed successfully'})
+        except Cart.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Cart not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
 
 
 @login_required
 def update_cart_item(request, product_id):
-    cart = get_object_or_404(Cart, user=request.user)
-    cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
-    
     if request.method == 'POST':
-        quantity = int(request.POST.get('quantity', 1))
-        if quantity > 0:
-            cart_item.quantity = quantity
-            cart_item.save()
-        else:
-            cart_item.delete()  # Remove item if quantity is 0
+        quantity = int(request.POST.get('quantity', 0))
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart_item, created = CartItem.objects.get_or_create(cart=cart, product_id=product_id)
+            
+            if quantity > 0:
+                cart_item.quantity = quantity
+                cart_item.save()
+                message = 'Cart updated successfully'
+            else:
+                cart_item.delete()
+                message = 'Item removed from cart'
+            
+            return JsonResponse({'success': True, 'message': message})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
     
-    return redirect('spares:view_cart')
-
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
 
 
@@ -636,6 +650,8 @@ def company_orders(request):
     # Assuming the user is a company user and has a related Company model
     orders = Order.objects.filter(product__company=request.user.company).order_by('-order_date')
     return render(request, 'company_orders.html', {'orders': orders})
+
+
 
 
 
