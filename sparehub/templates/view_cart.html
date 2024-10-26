@@ -132,13 +132,20 @@
 
             <!-- Right: Billing Summary -->
             <div class="col-md-5">
-                <div class="total-section">
-                    <h3 class="mb-3">Order Summary</h3>
-                    <p><strong>Total Items:</strong> {{ cart_items|length }}</p>
-                    <p><strong>Delivery Charges:</strong> ₹{{ delivery_charges }}</p>
-                    <h4 class="total-amount mb-4">Total Amount: ₹<span id="total-amount">{{ total_amount }}</span></h4>
-                    <a href="{% url 'spares:payment_view' %}" class="btn btn-custom w-100">Proceed to Payment</a>
-                </div>
+                {% if cart_items %}
+                    <div class="total-section">
+                        <h3 class="mb-3">Order Summary</h3>
+                        <p><strong>Total Items:</strong> {{ cart_items|length }}</p>
+                        <p><strong>Delivery Charges:</strong> ₹{{ delivery_charges }}</p>
+                        <h4 class="total-amount mb-4">Total Amount: ₹<span id="total-amount">{{ total_amount }}</span></h4>
+                        <a href="{% url 'spares:payment_view' %}" class="btn btn-custom w-100">Proceed to Payment</a>
+                    </div>
+                {% else %}
+                    <div class="total-section">
+                        <h3 class="mb-3">Order Summary</h3>
+                        <p>Your cart is empty. Please add items to see the order summary.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
