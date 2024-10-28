@@ -683,13 +683,17 @@ def company_orders(request):
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from .models import Order
-
 @login_required
+
 def completed_orders(request):
-    # Fetch orders for the logged-in user
-    orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    
+    user = request.user
+    completed_orders = Order.objects.filter(user=user, status='delivered')
+    cancelled_orders = Order.objects.filter(user=user, status='cancelled')
+    to_be_delivered_orders = Order.objects.filter(user=user, status='to_be_delivered')
+
     context = {
-        'orders': orders
+        'completed_orders': completed_orders,
+        'cancelled_orders': cancelled_orders,
+        'to_be_delivered_orders': to_be_delivered_orders,
     }
     return render(request, 'completed_orders.html', context)
